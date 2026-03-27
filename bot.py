@@ -1,5 +1,5 @@
 """
-AIGA Discord Bot
+AIGA Discord Bot v4
 Age of Empires Mobile AI Advisor
 Built by Network Grey | Powered by Anthropic Claude
 """
@@ -8,7 +8,7 @@ import os
 import discord
 import anthropic
 from collections import defaultdict, deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -27,7 +27,7 @@ RATE_LIMIT_WINDOW = 3600  # seconds (1 hour)
 CONTEXT_WINDOW    = 10  # last 10 messages (5 exchanges)
 
 # Model
-CLAUDE_MODEL      = "claude-sonnet-4-5-20251022"
+CLAUDE_MODEL      = "claude-haiku-4-5-20251001"
 
 # ─── AIGA System Prompt ───────────────────────────────────────────────────────
 
@@ -166,7 +166,7 @@ def check_rate_limit(user_id: int) -> tuple[bool, int]:
     Check if user has exceeded the rate limit.
     Returns (is_allowed, messages_remaining).
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     window_start = now - timedelta(seconds=RATE_LIMIT_WINDOW)
 
     # Remove timestamps outside the current window
