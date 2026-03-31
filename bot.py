@@ -1,33 +1,290 @@
 """
-AIGA Discord Bot v4
+AIGA Discord Bot v5
 Age of Empires Mobile AI Advisor
 Built by Network Grey | Powered by Anthropic Claude
+
+v5 changes: Knowledge base context injection.
+Reference documents in the /knowledge folder are loaded at startup and
+injected into API calls based on keyword matching against the user query.
+This gives the bot access to all 40 reference documents without a RAG pipeline.
 """
 
 import os
+import re
+import glob
 import discord
 import anthropic
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 
-# Set these as environment variables in Railway — never hardcode tokens
 DISCORD_TOKEN     = os.environ["DISCORD_TOKEN"]
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 
-# The name of the channel AIGA will respond in
-AIGA_CHANNEL_NAME = "aiga-advisor"  # Change to match your channel name exactly
+AIGA_CHANNEL_NAME = "aiga-advisor"
 
-# Rate limiting: max messages per user per hour
 RATE_LIMIT_MAX    = 10
-RATE_LIMIT_WINDOW = 3600  # seconds (1 hour)
+RATE_LIMIT_WINDOW = 3600
 
-# Conversation context: how many messages to remember per user
-CONTEXT_WINDOW    = 10  # last 10 messages (5 exchanges)
+CONTEXT_WINDOW    = 10
 
-# Model
+# Model — Haiku for Discord (fast, low cost, snappy answers)
+# Web app uses Sonnet 4.6 for deeper analysis and file handling
 CLAUDE_MODEL      = "claude-haiku-4-5-20251001"
+
+# Temperature — low for a game advisor: factual, consistent, exact numbers
+# 0.0 = fully deterministic | 1.0 = creative/varied
+# 0.3 is the sweet spot for strategic advice: reliable but not robotic
+TEMPERATURE       = 0.3
+
+# Max number of reference docs to inject per query
+# All docs in /knowledge are loaded at startup — this caps injection per call
+MAX_INJECTED_DOCS = 2
+
+# Path to the knowledge base folder (relative to bot.py)
+KNOWLEDGE_DIR     = Path(__file__).parent / "knowledge"
+
+# ─── Knowledge Base — Keyword Map ────────────────────────────────────────────
+#
+# Maps topic keywords (lowercase) to knowledge base filenames.
+# On each query, the bot scores all keywords against the user message and
+# selects the top MAX_INJECTED_DOCS files to inject as context.
+#
+# TO ADD A NEW SOURCE FILE:
+# 1. Drop the .md file into the /knowledge folder — it loads automatically
+# 2. Add keyword entries below pointing to the new filename
+# No other code changes required.
+#
+# Rules:
+# - Each keyword can map to one or more filenames
+# - Filenames must match exactly what is in the /knowledge folder
+# - More specific keywords score higher than generic ones
+# - Add new entries here as new reference docs are added
+
+KEYWORD_MAP = {
+    # Hero system
+    "hero":             ["AIGA_Hero_Complete_Reference_v3.md", "AIGA_Hero_XP_Skills_Reference.md"],
+    "heroes":           ["AIGA_Hero_Complete_Reference_v3.md", "AIGA_Hero_XP_Skills_Reference.md"],
+    "xp":               ["AIGA_Hero_XP_Skills_Reference.md"],
+    "level":            ["AIGA_Hero_XP_Skills_Reference.md"],
+    "rank":             ["AIGA_Hero_XP_Skills_Reference.md"],
+    "medal":            ["AIGA_Hero_XP_Skills_Reference.md"],
+    "medals":           ["AIGA_Hero_XP_Skills_Reference.md"],
+    "skill":            ["AIGA_Hero_Skills_Library_Reference.md", "AIGA_Hero_XP_Skills_Reference.md"],
+    "skills":           ["AIGA_Hero_Skills_Library_Reference.md", "AIGA_Hero_XP_Skills_Reference.md"],
+    "skill point":      ["AIGA_Hero_XP_Skills_Reference.md"],
+    "sp":               ["AIGA_Hero_XP_Skills_Reference.md"],
+    "build":            ["AIGA_Hero_Builds_Reference_S_Tiers.md"],
+    "builds":           ["AIGA_Hero_Builds_Reference_S_Tiers.md"],
+    "tier list":        ["AIGA_Hero_Tier_List_Reference.md"],
+    "best hero":        ["AIGA_Hero_Tier_List_Reference.md"],
+    "talent":           ["AIGA_Hero_XP_Skills_Reference.md"],
+    "specialty":        ["AIGA_Hero_Complete_Reference_v3.md"],
+
+    # Named heroes (map to complete reference)
+    "lu bu":            ["AIGA_Hero_Complete_Reference_v3.md"],
+    "hua mulan":        ["AIGA_Hero_Complete_Reference_v3.md"],
+    "tomyris":          ["AIGA_Hero_Complete_Reference_v3.md"],
+    "musashi":          ["AIGA_Hero_Complete_Reference_v3.md"],
+    "miyamoto":         ["AIGA_Hero_Complete_Reference_v3.md"],
+    "hannibal":         ["AIGA_Hero_Complete_Reference_v3.md"],
+    "attila":           ["AIGA_Hero_Complete_Reference_v3.md"],
+    "diao chan":         ["AIGA_Hero_Complete_Reference_v3.md"],
+    "richard":          ["AIGA_Hero_Complete_Reference_v3.md"],
+    "leonidas":         ["AIGA_Hero_Complete_Reference_v3.md"],
+    "boudica":          ["AIGA_Hero_Complete_Reference_v3.md"],
+    "joan":             ["AIGA_Hero_Complete_Reference_v3.md"],
+    "cleopatra":        ["AIGA_Hero_Complete_Reference_v3.md"],
+    "darius":           ["AIGA_Hero_Complete_Reference_v3.md"],
+    "sun tzu":          ["AIGA_Hero_Complete_Reference_v3.md"],
+    "guan yu":          ["AIGA_Hero_Complete_Reference_v3.md"],
+    "yi sun":           ["AIGA_Hero_Complete_Reference_v3.md"],
+    "yodit":            ["AIGA_Hero_Complete_Reference_v3.md"],
+    "tribhuwana":       ["AIGA_Hero_Complete_Reference_v3.md"],
+    "toyotomi":         ["AIGA_Hero_Complete_Reference_v3.md"],
+    "otto":             ["AIGA_Hero_Complete_Reference_v3.md"],
+    "maya":             ["AIGA_Hero_Complete_Reference_v3.md"],
+    "yellet":           ["AIGA_Hero_Complete_Reference_v3.md"],
+    "king arthur":      ["AIGA_Hero_Complete_Reference_v3.md"],
+    "arthur":           ["AIGA_Hero_Complete_Reference_v3.md"],
+    "khalid":           ["AIGA_Hero_Complete_Reference_v3.md"],
+    "tariq":            ["AIGA_Hero_Complete_Reference_v3.md"],
+
+    # Troops and training
+    "troop":            ["AIGA_Troop_Training_Reference.md"],
+    "troops":           ["AIGA_Troop_Training_Reference.md"],
+    "training":         ["AIGA_Troop_Training_Reference.md"],
+    "train":            ["AIGA_Troop_Training_Reference.md"],
+    "t1":               ["AIGA_Troop_Training_Reference.md"],
+    "t2":               ["AIGA_Troop_Training_Reference.md"],
+    "t3":               ["AIGA_Troop_Training_Reference.md"],
+    "t4":               ["AIGA_Troop_Training_Reference.md"],
+    "t5":               ["AIGA_Troop_Training_Reference.md"],
+    "t6":               ["AIGA_Troop_Training_Reference.md"],
+    "t7":               ["AIGA_Troop_Training_Reference.md"],
+    "swordsmen":        ["AIGA_Troop_Training_Reference.md"],
+    "pikemen":          ["AIGA_Troop_Training_Reference.md"],
+    "cavalry":          ["AIGA_Troop_Training_Reference.md"],
+    "archer":           ["AIGA_Troop_Training_Reference.md"],
+    "archers":          ["AIGA_Troop_Training_Reference.md"],
+    "promotion":        ["AIGA_Troop_Training_Reference.md"],
+    "promote":          ["AIGA_Troop_Training_Reference.md"],
+
+    # Healing
+    "heal":             ["AIGA_Healing_Reference.md"],
+    "healing":          ["AIGA_Healing_Reference.md"],
+    "hospital":         ["AIGA_Healing_Reference.md"],
+    "wounded":          ["AIGA_Healing_Reference.md"],
+
+    # Gear
+    "gear":             ["AIGA_Gear_Gems_Reference.md", "AIGA_Gear_Stats_Addendum.md"],
+    "equipment":        ["AIGA_Gear_Gems_Reference.md"],
+    "forge":            ["AIGA_Gear_Gems_Reference.md"],
+    "smithy":           ["AIGA_Gear_Gems_Reference.md"],
+    "legendary gear":   ["AIGA_Gear_Gems_Reference.md"],
+    "epic gear":        ["AIGA_Gear_Gems_Reference.md"],
+    "rare gear":        ["AIGA_Gear_Gems_Reference.md"],
+    "gem":              ["AIGA_Gear_Gems_Reference.md"],
+    "gems":             ["AIGA_Gear_Gems_Reference.md"],
+    "meteorite":        ["AIGA_Gear_Gems_Reference.md"],
+    "dismantle":        ["AIGA_Gear_Gems_Reference.md"],
+    "craft":            ["AIGA_Gear_Gems_Reference.md"],
+    "star upgrade":     ["AIGA_Gear_Gems_Reference.md"],
+    "magma":            ["AIGA_Gear_Gems_Reference.md"],
+
+    # Rings
+    "ring":             ["AIGA_Rings_Reference.md", "AIGA_Rings_Skills_Addendum.md"],
+    "rings":            ["AIGA_Rings_Reference.md", "AIGA_Rings_Skills_Addendum.md"],
+    "skyward":          ["AIGA_Rings_Reference.md"],
+    "radiant":          ["AIGA_Rings_Reference.md"],
+    "eastern heavens":  ["AIGA_Rings_Reference.md"],
+
+    # Events
+    "mge":              ["AIGA_MGE_Reference.md"],
+    "mightiest governor": ["AIGA_MGE_Reference.md"],
+    "mee":              ["AIGA_MEE_Reference.md"],
+    "mightiest empire": ["AIGA_MEE_Reference.md"],
+    "event":            ["AIGA_Events_Index_Reference.md"],
+    "events":           ["AIGA_Events_Index_Reference.md"],
+    "wheel":            ["AIGA_Research_Mercenary_Wheel_Reference.md", "AIGA_Events_Index_Reference.md"],
+    "advent":           ["AIGA_Events_Index_Reference.md"],
+    "tribe":            ["AIGA_MGE_Reference.md"],
+    "tribal raid":      ["AIGA_MGE_Reference.md"],
+    "speedup":          ["AIGA_MGE_Reference.md", "AIGA_MEE_Reference.md"],
+    "speedups":         ["AIGA_MGE_Reference.md", "AIGA_MEE_Reference.md"],
+    "warriors trial":   ["AIGA_Events_Index_Reference.md"],
+    "trojan turmoil":   ["AIGA_Events_Index_Reference.md"],
+
+    # Buildings
+    "building":         ["AIGA_Buildings_Complete_Reference.md"],
+    "buildings":        ["AIGA_Buildings_Complete_Reference.md"],
+    "barracks":         ["AIGA_Buildings_Complete_Reference.md"],
+    "market":           ["AIGA_Buildings_Complete_Reference.md"],
+    "embassy":          ["AIGA_Buildings_Complete_Reference.md"],
+    "university":       ["AIGA_Buildings_Complete_Reference.md", "AIGA_Research_Technology_Reference.md"],
+    "tavern":           ["AIGA_Buildings_Complete_Reference.md"],
+    "watch tower":      ["AIGA_Buildings_Complete_Reference.md"],
+    "stable":           ["AIGA_Buildings_Complete_Reference.md"],
+    "city walls":       ["AIGA_Buildings_Complete_Reference.md"],
+
+    # Research
+    "research":         ["AIGA_Research_Technology_Reference.md", "AIGA_Research_Mercenary_Wheel_Reference.md"],
+    "mercenary":        ["AIGA_Research_Mercenary_Wheel_Reference.md"],
+    "mercenary camp":   ["AIGA_Research_Mercenary_Wheel_Reference.md"],
+    "technology":       ["AIGA_Research_Technology_Reference.md"],
+
+    # Town Centre
+    "tc":               ["AIGA_Town_Centre_Upgrade_Reference.md"],
+    "town centre":      ["AIGA_Town_Centre_Upgrade_Reference.md"],
+    "town center":      ["AIGA_Town_Centre_Upgrade_Reference.md"],
+
+    # Gathering
+    "gather":           ["AIGA_Gathering_Reference.md"],
+    "gathering":        ["AIGA_Gathering_Reference.md"],
+    "resource":         ["AIGA_Gathering_Reference.md"],
+    "resources":        ["AIGA_Gathering_Reference.md"],
+    "food":             ["AIGA_Gathering_Reference.md"],
+    "wood":             ["AIGA_Gathering_Reference.md"],
+    "stone":            ["AIGA_Gathering_Reference.md"],
+    "gold":             ["AIGA_Gathering_Reference.md"],
+    "node":             ["AIGA_Gathering_Reference.md"],
+    "nodes":            ["AIGA_Gathering_Reference.md"],
+
+    # Mounts
+    "mount":            ["AIGA_Mount_System_Reference.md"],
+    "mounts":           ["AIGA_Mount_System_Reference.md"],
+    "breed":            ["AIGA_Mount_System_Reference.md"],
+    "breeding":         ["AIGA_Mount_System_Reference.md"],
+    "temperament":      ["AIGA_Mount_System_Reference.md"],
+    "warbred":          ["AIGA_Mount_System_Reference.md"],
+    "fearless":         ["AIGA_Mount_System_Reference.md"],
+    "adornment":        ["AIGA_Mount_System_Reference.md"],
+    "skywing":          ["AIGA_Mount_System_Reference.md"],
+    "celestial":        ["AIGA_Mount_System_Reference.md"],
+
+    # March and combat
+    "march":            ["AIGA_March_Compositions_Reference.md"],
+    "marches":          ["AIGA_March_Compositions_Reference.md"],
+    "rally":            ["AIGA_March_Compositions_Reference.md", "AIGA_Combat_PvP_Addendum.md"],
+    "rallies":          ["AIGA_March_Compositions_Reference.md", "AIGA_Combat_PvP_Addendum.md"],
+    "combat":           ["AIGA_Combat_PvP_Addendum.md"],
+    "pvp":              ["AIGA_Combat_PvP_Addendum.md"],
+    "attack":           ["AIGA_Combat_PvP_Addendum.md"],
+    "golden expedition": ["AIGA_Combat_PvP_Addendum.md"],
+    "merit":            ["AIGA_Combat_PvP_Addendum.md"],
+
+    # Civilisations
+    "civ":              ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "civilisation":     ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "civilization":     ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "french":           ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "japanese":         ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "byzantine":        ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "korean":           ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "chinese":          ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "british":          ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "roman":            ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "egyptian":         ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "arab":             ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "arabs":            ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+    "landmark":         ["AIGA_Civilizations_Landmarks_Territory_Reference.md"],
+
+    # World map and territory
+    "territory":        ["AIGA_WorldMap_Mechanics_Addendum.md"],
+    "world map":        ["AIGA_WorldMap_Mechanics_Addendum.md"],
+    "hive":             ["AIGA_WorldMap_Mechanics_Addendum.md"],
+    "pass":             ["AIGA_WorldMap_Mechanics_Addendum.md"],
+    "passes":           ["AIGA_WorldMap_Mechanics_Addendum.md"],
+    "holy site":        ["AIGA_WorldMap_Mechanics_Addendum.md"],
+
+    # Game mechanics
+    "mechanic":         ["AIGA_Game_Mechanics_Reference.md"],
+    "mechanics":        ["AIGA_Game_Mechanics_Reference.md"],
+    "stamina":          ["AIGA_Game_Mechanics_Reference.md"],
+    "villager":         ["AIGA_Game_Mechanics_Reference.md"],
+    "villagers":        ["AIGA_Game_Mechanics_Reference.md"],
+    "auto battler":     ["AIGA_Game_Mechanics_Reference.md"],
+    "alliance":         ["AIGA_Game_Mechanics_Reference.md"],
+    "empire coin":      ["AIGA_Game_Mechanics_Reference.md"],
+    "empire coins":     ["AIGA_Game_Mechanics_Reference.md"],
+    "island tactics":   ["AIGA_Game_Mechanics_Reference.md"],
+
+    # VIP
+    "vip":              ["AIGA_VIP_Reference.md"],
+
+    # Items and store
+    "item":             ["AIGA_Items_Store_Reference.md"],
+    "items":            ["AIGA_Items_Store_Reference.md"],
+    "store":            ["AIGA_Items_Store_Reference.md"],
+    "shop":             ["AIGA_Items_Store_Reference.md"],
+    "bundle":           ["AIGA_Items_Store_Reference.md"],
+
+    # Game modes
+    "game mode":        ["AIGA_Game_Modes_Addendum.md"],
+    "game modes":       ["AIGA_Game_Modes_Addendum.md"],
+}
 
 # ─── AIGA System Prompt ───────────────────────────────────────────────────────
 
@@ -141,110 +398,172 @@ Island Tactics coins (×2 daily, cap at 12h) | Legendary Advent free spins (8/da
 - Advise on real-money purchases
 - Confirm exploits or unofficial mechanics
 - Give advice on alliance politics
-- State unverified community knowledge as fact — always flag it"""
+- State unverified community knowledge as fact — always flag it
+
+## ADDITIONAL REFERENCE DATA
+When additional reference documents are injected below, treat them as authoritative. They override any conflicting summary data in this prompt. Always prefer exact figures from injected documents over general statements above."""
+
+# ─── Knowledge Base Loader ────────────────────────────────────────────────────
+
+def load_knowledge_base(knowledge_dir: Path) -> dict[str, str]:
+    """
+    Load all markdown files from the knowledge directory into memory at startup.
+    Returns a dict of {filename: content}.
+    Logs which files loaded successfully and which are missing.
+    """
+    loaded = {}
+
+    if not knowledge_dir.exists():
+        print(f"[AIGA] WARNING: Knowledge directory not found at {knowledge_dir}")
+        print(f"[AIGA] Bot will run with system prompt only — context injection disabled")
+        return loaded
+
+    md_files = list(knowledge_dir.glob("*.md"))
+
+    if not md_files:
+        print(f"[AIGA] WARNING: No .md files found in {knowledge_dir}")
+        return loaded
+
+    for filepath in sorted(md_files):
+        try:
+            content = filepath.read_text(encoding="utf-8")
+            loaded[filepath.name] = content
+            print(f"[AIGA] Loaded: {filepath.name} ({len(content):,} chars)")
+        except Exception as e:
+            print(f"[AIGA] ERROR loading {filepath.name}: {e}")
+
+    print(f"[AIGA] Knowledge base ready: {len(loaded)} documents loaded")
+    return loaded
+
+
+def select_relevant_docs(query: str, knowledge_base: dict[str, str], max_docs: int = MAX_INJECTED_DOCS) -> list[str]:
+    """
+    Score the query against the keyword map and return the content of the
+    top matching documents (up to max_docs).
+
+    Scoring: each keyword match adds 1 point to its associated files.
+    Multi-word keywords score 2 points (more specific = higher priority).
+    Returns a list of document content strings, ordered by relevance score.
+    """
+    if not knowledge_base:
+        return []
+
+    query_lower = query.lower()
+    file_scores: dict[str, int] = defaultdict(int)
+
+    for keyword, filenames in KEYWORD_MAP.items():
+        if keyword in query_lower:
+            # Multi-word keywords are more specific — weight them higher
+            score = 2 if " " in keyword else 1
+            for filename in filenames:
+                if filename in knowledge_base:
+                    file_scores[filename] += score
+
+    if not file_scores:
+        return []
+
+    # Sort by score descending, take top max_docs
+    ranked = sorted(file_scores.items(), key=lambda x: x[1], reverse=True)
+    selected = ranked[:max_docs]
+
+    # Log what's being injected (visible in Railway logs)
+    for filename, score in selected:
+        print(f"[AIGA] Injecting: {filename} (score={score})")
+
+    return [knowledge_base[filename] for filename, _ in selected]
+
+
+def build_system_prompt_with_context(relevant_docs: list[str]) -> str:
+    """
+    Append injected reference documents to the base system prompt.
+    Each doc is clearly delimited so the model understands the structure.
+    """
+    if not relevant_docs:
+        return SYSTEM_PROMPT
+
+    injected = "\n\n---\n\n".join(
+        f"## REFERENCE DOCUMENT {i + 1}\n\n{doc}"
+        for i, doc in enumerate(relevant_docs)
+    )
+
+    return f"{SYSTEM_PROMPT}\n\n---\n\n# INJECTED KNOWLEDGE BASE DOCUMENTS\n\nThe following verified reference data applies to this query. Use exact figures from these documents in your response.\n\n{injected}"
+
 
 # ─── Discord Client Setup ─────────────────────────────────────────────────────
 
 intents = discord.Intents.default()
-intents.message_content = True  # Required to read message text
+intents.message_content = True
 
 client = discord.Client(intents=intents)
 anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # ─── State Storage ────────────────────────────────────────────────────────────
 
-# Conversation history per user: {user_id: deque of message dicts}
 conversation_history = defaultdict(lambda: deque(maxlen=CONTEXT_WINDOW))
-
-# Rate limiting: {user_id: list of timestamps}
 rate_limit_tracker = defaultdict(list)
+
+# Knowledge base loaded at startup — shared across all queries
+knowledge_base: dict[str, str] = {}
 
 # ─── Helper Functions ─────────────────────────────────────────────────────────
 
 def check_rate_limit(user_id: int) -> tuple[bool, int]:
-    """
-    Check if user has exceeded the rate limit.
-    Returns (is_allowed, messages_remaining).
-    """
     now = datetime.now(timezone.utc)
     window_start = now - timedelta(seconds=RATE_LIMIT_WINDOW)
-
-    # Remove timestamps outside the current window
     rate_limit_tracker[user_id] = [
-        ts for ts in rate_limit_tracker[user_id]
-        if ts > window_start
+        ts for ts in rate_limit_tracker[user_id] if ts > window_start
     ]
-
     messages_used = len(rate_limit_tracker[user_id])
     messages_remaining = RATE_LIMIT_MAX - messages_used
-
     if messages_used >= RATE_LIMIT_MAX:
         return False, 0
-
-    # Record this message
     rate_limit_tracker[user_id].append(now)
     return True, messages_remaining - 1
 
 
 def build_messages(user_id: int, new_message: str) -> list[dict]:
-    """
-    Build the messages array for the API call, including conversation history.
-    """
     history = list(conversation_history[user_id])
     history.append({"role": "user", "content": new_message})
     return history
 
 
 def store_exchange(user_id: int, user_message: str, assistant_response: str):
-    """
-    Store the user message and assistant response in conversation history.
-    """
-    conversation_history[user_id].append(
-        {"role": "user", "content": user_message}
-    )
-    conversation_history[user_id].append(
-        {"role": "assistant", "content": assistant_response}
-    )
+    conversation_history[user_id].append({"role": "user", "content": user_message})
+    conversation_history[user_id].append({"role": "assistant", "content": assistant_response})
 
 
 def truncate_for_discord(text: str, limit: int = 1900) -> list[str]:
-    """
-    Split long responses into Discord-safe chunks (max 2000 chars per message).
-    Splits on newlines where possible to keep formatting clean.
-    """
     if len(text) <= limit:
         return [text]
-
     chunks = []
     while len(text) > limit:
-        # Try to split at a newline near the limit
         split_at = text.rfind("\n", 0, limit)
         if split_at == -1:
             split_at = limit
         chunks.append(text[:split_at])
         text = text[split_at:].lstrip("\n")
-
     if text:
         chunks.append(text)
-
     return chunks
 
 # ─── Event Handlers ───────────────────────────────────────────────────────────
 
 @client.event
 async def on_ready():
-    print(f"AIGA is online as {client.user}")
-    print(f"Listening in channel: #{AIGA_CHANNEL_NAME}")
+    global knowledge_base
+    print(f"[AIGA] Online as {client.user}")
+    print(f"[AIGA] Listening in channel: #{AIGA_CHANNEL_NAME}")
+
+    # Load knowledge base on startup
+    knowledge_base = load_knowledge_base(KNOWLEDGE_DIR)
 
 
 @client.event
 async def on_message(message: discord.Message):
 
-    # Ignore messages from bots (including AIGA itself)
     if message.author.bot:
         return
 
-    # Only respond in the designated channel
     if message.channel.name != AIGA_CHANNEL_NAME:
         return
 
@@ -252,11 +571,9 @@ async def on_message(message: discord.Message):
     user_name = message.author.display_name
     content   = message.content.strip()
 
-    # Ignore empty messages
     if not content:
         return
 
-    # ── Rate limit check ──────────────────────────────────────────────────────
     allowed, remaining = check_rate_limit(user_id)
     if not allowed:
         await message.reply(
@@ -265,9 +582,14 @@ async def on_message(message: discord.Message):
         )
         return
 
-    # ── Show typing indicator while processing ────────────────────────────────
     async with message.channel.typing():
         try:
+            # Select relevant docs based on the user's query
+            relevant_docs = select_relevant_docs(content, knowledge_base)
+
+            # Build system prompt with injected context if available
+            active_system_prompt = build_system_prompt_with_context(relevant_docs)
+
             # Build message history for this user
             messages = build_messages(user_id, content)
 
@@ -275,16 +597,16 @@ async def on_message(message: discord.Message):
             response = anthropic_client.messages.create(
                 model=CLAUDE_MODEL,
                 max_tokens=1024,
-                system=SYSTEM_PROMPT,
+                temperature=TEMPERATURE,
+                system=active_system_prompt,
                 messages=messages,
             )
 
             reply_text = response.content[0].text
 
-            # Store exchange in history
+            # Store exchange in history (without injected docs — keep history lean)
             store_exchange(user_id, content, reply_text)
 
-            # Send response — split if too long for Discord
             chunks = truncate_for_discord(reply_text)
             for i, chunk in enumerate(chunks):
                 if i == 0:
@@ -292,7 +614,6 @@ async def on_message(message: discord.Message):
                 else:
                     await message.channel.send(chunk)
 
-            # Low remaining messages warning
             if remaining == 2:
                 await message.channel.send(
                     f"*{user_name} — you have {remaining} messages left "
@@ -300,14 +621,14 @@ async def on_message(message: discord.Message):
                 )
 
         except anthropic.APIError as e:
-            print(f"Anthropic API error: {e}")
+            print(f"[AIGA] Anthropic API error: {e}")
             await message.reply(
                 "I hit an error reaching my knowledge base. "
                 "Please try again in a moment."
             )
 
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            print(f"[AIGA] Unexpected error: {e}")
             await message.reply(
                 "Something went wrong on my end. Please try again."
             )
