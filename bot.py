@@ -1,12 +1,14 @@
 """
-AIGA Discord Bot v5
+AIGA Discord Bot v6
 Age of Empires Mobile AI Advisor
 Built by Network Grey | Powered by Anthropic Claude
 
-v5 changes: Knowledge base context injection.
-Reference documents in the /knowledge folder are loaded at startup and
-injected into API calls based on keyword matching against the user query.
-This gives the bot access to all 40 reference documents without a RAG pipeline.
+v6 changes:
+- Knowledge base index always injected on every query (wiki approach).
+  Claude now knows what documents exist and can reason about coverage gaps.
+- MAX_INJECTED_DOCS increased from 2 to 3 keyword-matched docs.
+  Total context per query: index + up to 3 topic docs = 4 documents max.
+- No other logic changes.
 """
 
 import os
@@ -39,9 +41,13 @@ CLAUDE_MODEL      = "claude-haiku-4-5-20251001"
 # 0.3 is the sweet spot for strategic advice: reliable but not robotic
 TEMPERATURE       = 0.3
 
-# Max number of reference docs to inject per query
-# All docs in /knowledge are loaded at startup — this caps injection per call
-MAX_INJECTED_DOCS = 2
+# Max number of keyword-matched docs to inject per query (excluding index)
+# Index is always injected on top — total context = index + MAX_INJECTED_DOCS
+MAX_INJECTED_DOCS = 3
+
+# The index is always injected first on every query so Claude knows what
+# documents exist and can reason about what it does and doesn't have access to
+INDEX_DOC         = "AIGA_Knowledge_Base_Index.md"
 
 # Path to the knowledge base folder (relative to bot.py)
 KNOWLEDGE_DIR     = Path(__file__).parent / "knowledge"
@@ -164,8 +170,8 @@ KEYWORD_MAP = {
     # Events
     "mge":              ["AIGA_MGE_Reference.md"],
     "mightiest governor": ["AIGA_MGE_Reference.md"],
-    "mee":              ["AIGA_MEE_Reference.md"],
-    "mightiest empire": ["AIGA_MEE_Reference.md"],
+    "mee":              ["AIGA_MEE_Reference.md", "AIGA_MEE_Guide_v1.md"],
+    "mightiest empire": ["AIGA_MEE_Reference.md", "AIGA_MEE_Guide_v1.md"],
     "event":            ["AIGA_Events_Index_Reference.md"],
     "events":           ["AIGA_Events_Index_Reference.md"],
     "wheel":            ["AIGA_Research_Mercenary_Wheel_Reference.md", "AIGA_Events_Index_Reference.md"],
@@ -176,6 +182,10 @@ KEYWORD_MAP = {
     "speedups":         ["AIGA_MGE_Reference.md", "AIGA_MEE_Reference.md"],
     "warriors trial":   ["AIGA_Events_Index_Reference.md"],
     "trojan turmoil":   ["AIGA_Events_Index_Reference.md"],
+    "battle of dawn":   ["AIGA_Battle_of_Dawn_Reference.md"],
+    "wonder":           ["AIGA_Wonder_Contest_Reference.md"],
+    "wonder contest":   ["AIGA_Wonder_Contest_Reference.md"],
+    "starfall":         ["AIGA_Events_Index_Reference.md"],
 
     # Buildings
     "building":         ["AIGA_Buildings_Complete_Reference.md"],
@@ -267,8 +277,10 @@ KEYWORD_MAP = {
     "villagers":        ["AIGA_Game_Mechanics_Reference.md"],
     "auto battler":     ["AIGA_Game_Mechanics_Reference.md"],
     "alliance":         ["AIGA_Game_Mechanics_Reference.md"],
-    "empire coin":      ["AIGA_Game_Mechanics_Reference.md"],
-    "empire coins":     ["AIGA_Game_Mechanics_Reference.md"],
+    "empire coin":      ["AIGA_Free_Coins_Currency_Manual.md"],
+    "empire coins":     ["AIGA_Free_Coins_Currency_Manual.md"],
+    "free coins":       ["AIGA_Free_Coins_Currency_Manual.md"],
+    "currency":         ["AIGA_Free_Coins_Currency_Manual.md"],
     "island tactics":   ["AIGA_Game_Mechanics_Reference.md"],
 
     # VIP
@@ -284,6 +296,8 @@ KEYWORD_MAP = {
     # Game modes
     "game mode":        ["AIGA_Game_Modes_Addendum.md"],
     "game modes":       ["AIGA_Game_Modes_Addendum.md"],
+    "apex arena":       ["AIGA_Game_Modes_Addendum.md"],
+    "radiance":         ["AIGA_Game_Modes_Addendum.md"],
 }
 
 # ─── AIGA System Prompt ───────────────────────────────────────────────────────
@@ -392,7 +406,7 @@ Match civ to primary march troop type:
 TC12: 2nd hero per march | TC15: Smithy | TC17: 3rd hero per march (target this first) | TC18: Rings | TC21: Glorious Age
 
 ### Daily Checklist (non-negotiable)
-Island Tactics coins (×2 daily, cap at 12h) | Legendary Advent free spins (8/day) | Alliance donations | Free stamina supply | Tavern free pull | Daily quests (200 pts = all chests) | Fishing (3× daily) | Hospital auto-heal
+Island Tactics coins (x2 daily, cap at 12h) | Legendary Advent free spins (8/day) | Alliance donations | Free stamina supply | Tavern free pull | Daily quests (200 pts = all chests) | Fishing (3x daily) | Hospital auto-heal
 
 ## WHAT AIGA WILL NOT DO
 - Advise on real-money purchases
@@ -433,17 +447,25 @@ def load_knowledge_base(knowledge_dir: Path) -> dict[str, str]:
             print(f"[AIGA] ERROR loading {filepath.name}: {e}")
 
     print(f"[AIGA] Knowledge base ready: {len(loaded)} documents loaded")
+
+    # Warn if index doc is missing — it is always injected
+    if INDEX_DOC not in loaded:
+        print(f"[AIGA] WARNING: {INDEX_DOC} not found — index injection disabled")
+
     return loaded
 
 
 def select_relevant_docs(query: str, knowledge_base: dict[str, str], max_docs: int = MAX_INJECTED_DOCS) -> list[str]:
     """
     Score the query against the keyword map and return the content of the
-    top matching documents (up to max_docs).
+    top matching documents (up to max_docs), excluding the index doc.
 
     Scoring: each keyword match adds 1 point to its associated files.
     Multi-word keywords score 2 points (more specific = higher priority).
     Returns a list of document content strings, ordered by relevance score.
+
+    The index document is handled separately in build_system_prompt_with_context
+    and is always injected — do not include it in keyword scoring.
     """
     if not knowledge_base:
         return []
@@ -456,6 +478,9 @@ def select_relevant_docs(query: str, knowledge_base: dict[str, str], max_docs: i
             # Multi-word keywords are more specific — weight them higher
             score = 2 if " " in keyword else 1
             for filename in filenames:
+                # Skip the index — it is always injected separately
+                if filename == INDEX_DOC:
+                    continue
                 if filename in knowledge_base:
                     file_scores[filename] += score
 
@@ -473,20 +498,45 @@ def select_relevant_docs(query: str, knowledge_base: dict[str, str], max_docs: i
     return [knowledge_base[filename] for filename, _ in selected]
 
 
-def build_system_prompt_with_context(relevant_docs: list[str]) -> str:
+def build_system_prompt_with_context(relevant_docs: list[str], knowledge_base: dict[str, str]) -> str:
     """
-    Append injected reference documents to the base system prompt.
-    Each doc is clearly delimited so the model understands the structure.
+    Build the full system prompt with:
+    1. The knowledge base index (always injected first — wiki approach)
+    2. Up to MAX_INJECTED_DOCS keyword-matched topic documents
+
+    The index tells Claude what documents exist across the full knowledge base,
+    enabling it to reason about coverage gaps even when a topic doc isn't injected.
     """
-    if not relevant_docs:
+    sections = []
+
+    # Always inject the index first if available
+    if INDEX_DOC in knowledge_base:
+        sections.append(
+            f"## KNOWLEDGE BASE INDEX\n\n"
+            f"The following index lists all available reference documents in AIGA's knowledge base. "
+            f"Use it to understand what verified data is available.\n\n"
+            f"{knowledge_base[INDEX_DOC]}"
+        )
+        print(f"[AIGA] Injecting: {INDEX_DOC} (always)")
+
+    # Then append keyword-matched topic docs
+    for i, doc in enumerate(relevant_docs):
+        sections.append(f"## REFERENCE DOCUMENT {i + 1}\n\n{doc}")
+
+    if not sections:
         return SYSTEM_PROMPT
 
-    injected = "\n\n---\n\n".join(
-        f"## REFERENCE DOCUMENT {i + 1}\n\n{doc}"
-        for i, doc in enumerate(relevant_docs)
-    )
+    injected = "\n\n---\n\n".join(sections)
 
-    return f"{SYSTEM_PROMPT}\n\n---\n\n# INJECTED KNOWLEDGE BASE DOCUMENTS\n\nThe following verified reference data applies to this query. Use exact figures from these documents in your response.\n\n{injected}"
+    return (
+        f"{SYSTEM_PROMPT}\n\n"
+        f"---\n\n"
+        f"# INJECTED KNOWLEDGE BASE DOCUMENTS\n\n"
+        f"The following verified reference data applies to this query. "
+        f"Use exact figures from these documents. They override any conflicting "
+        f"summary data in the system prompt above.\n\n"
+        f"{injected}"
+    )
 
 
 # ─── Discord Client Setup ─────────────────────────────────────────────────────
@@ -553,8 +603,6 @@ async def on_ready():
     global knowledge_base
     print(f"[AIGA] Online as {client.user}")
     print(f"[AIGA] Listening in channel: #{AIGA_CHANNEL_NAME}")
-
-    # Load knowledge base on startup
     knowledge_base = load_knowledge_base(KNOWLEDGE_DIR)
 
 
@@ -584,11 +632,11 @@ async def on_message(message: discord.Message):
 
     async with message.channel.typing():
         try:
-            # Select relevant docs based on the user's query
+            # Select keyword-matched docs (index handled separately)
             relevant_docs = select_relevant_docs(content, knowledge_base)
 
-            # Build system prompt with injected context if available
-            active_system_prompt = build_system_prompt_with_context(relevant_docs)
+            # Build system prompt: index always first, then topic docs
+            active_system_prompt = build_system_prompt_with_context(relevant_docs, knowledge_base)
 
             # Build message history for this user
             messages = build_messages(user_id, content)
