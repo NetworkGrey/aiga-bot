@@ -5,6 +5,7 @@ Built by Network Grey | Powered by Anthropic Claude
 """
 
 import os
+import re
 import anthropic
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -47,7 +48,7 @@ CARRIES WELL: Lu Bu, Attila, Miyamoto, Tribhuwana, Belisarius, Guan Yu
 CARRIES PARTIALLY: Hua Mulan, Yi Sun-Shin, Josephine, Harald III, Hammurabi, Justinian
 LIMITED: Joan of Arc, Darius, Epic heroes
 
-RESPONSE FORMAT — return ONLY valid JSON, no markdown:
+RESPONSE FORMAT — return ONLY valid JSON, no markdown, no explanation:
 {
   "marches": [
     {
@@ -80,7 +81,11 @@ def analyse():
             system=MARCH_ANALYSER_SYSTEM,
             messages=[{"role": "user", "content": data["message"]}]
         )
-        return jsonify({"result": response.content[0].text})
+
+        raw = response.content[0].text
+        match = re.search(r'\{[\s\S]*\}', raw)
+        clean = match.group(0) if match else raw
+        return jsonify({"result": clean})
 
     except anthropic.APIError as e:
         print(f"[AIGA] API error: {e}")
