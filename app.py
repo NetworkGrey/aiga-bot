@@ -5,7 +5,7 @@ Built by Network Grey | Powered by Anthropic Claude
 """
 
 import os
-import re
+import json
 import anthropic
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -83,9 +83,17 @@ def analyse():
         )
 
         raw = response.content[0].text
-        match = re.search(r'\{[\s\S]*\}', raw)
-        clean = match.group(0) if match else raw
-        return jsonify({"result": clean})
+
+        # Use Python's JSON decoder to extract the first valid object,
+        # ignoring any text before or after it
+        decoder = json.JSONDecoder()
+        idx = raw.find('{')
+        if idx == -1:
+            raise ValueError("No JSON object found in model response")
+        obj, _ = decoder.raw_decode(raw, idx)
+
+        # Return the parsed object directly — browser receives clean JSON, no parsing needed
+        return jsonify({"result": obj})
 
     except anthropic.APIError as e:
         print(f"[AIGA] API error: {e}")
