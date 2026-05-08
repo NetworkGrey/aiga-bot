@@ -553,7 +553,6 @@ RESPONSE FORMAT — return ONLY valid JSON, no markdown:
   ],
   "priorities": ["action max 20 words", "action max 20 words", "action max 20 words"]
 }`;
-const RAILWAY_URL = 'https://aiga-web-production.up.railway.app/analyse';
   const userMsg = `Analyse my AoEM formation (Season 2 server, TC25+):\n\n` +
     marches.map(m =>
       `${m.march} (${m.label}):\n` +
@@ -565,7 +564,7 @@ const RAILWAY_URL = 'https://aiga-web-production.up.railway.app/analyse';
   // Railway endpoint — API key lives server-side, never in the browser
   const RAILWAY_URL = 'https://aiga-web-production.up.railway.app/analyse';
   try {
-    const res = await fetch(RAILWAY_URL, {
+    const res = await fetch('https://aiga-web-production.up.railway.app/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMsg })
