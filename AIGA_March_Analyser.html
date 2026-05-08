@@ -562,7 +562,6 @@ RESPONSE FORMAT — return ONLY valid JSON, no markdown:
     ).join('\n\n');
 
   // Railway endpoint — API key lives server-side, never in the browser
-  const RAILWAY_URL = 'https://aiga-web-production.up.railway.app/analyse';
   try {
     const res = await fetch('https://aiga-web-production.up.railway.app/analyse', {
       method: 'POST',
