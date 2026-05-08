@@ -571,7 +571,8 @@ RESPONSE FORMAT — return ONLY valid JSON, no markdown:
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     const raw = data.result || '';
-    const json = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const match = raw.match(/\{[\s\S]*\}/);
+const json = JSON.parse(match ? match[0] : raw);
     renderResults(json);
   } catch(err) {
     console.error(err);
