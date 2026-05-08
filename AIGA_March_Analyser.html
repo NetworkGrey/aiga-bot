@@ -570,7 +570,6 @@ RESPONSE FORMAT — return ONLY valid JSON, no markdown:
     });
   const data = await res.json();
     if (data.error) throw new Error(data.error);
-    const json = data.result;
     renderResults(json);
   } catch(err) {
     console.error(err);
