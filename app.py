@@ -93,7 +93,7 @@ def analyse():
         obj, _ = decoder.raw_decode(raw, idx)
 
         # Return the parsed object directly — browser receives clean JSON, no parsing needed
-        return jsonify({"result": obj})
+        return jsonify({"result": json.dumps(obj)})
 
     except anthropic.APIError as e:
         print(f"[AIGA] API error: {e}")
