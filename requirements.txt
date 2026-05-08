@@ -1,4 +1,6 @@
-# AIGA Discord Bot dependencies - v3
+# AIGA dependencies — Discord bot + Flask web server
 discord.py==2.3.2
 anthropic==0.40.0
 httpx==0.27.2
+flask==3.1.0
+flask-cors==5.0.0
