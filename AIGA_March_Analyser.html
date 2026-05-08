@@ -568,14 +568,9 @@ RESPONSE FORMAT — return ONLY valid JSON, no markdown:
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMsg })
     });
-    const data = await res.json();
+  const data = await res.json();
     if (data.error) throw new Error(data.error);
-    const raw = data.result || '';
-  const json = data.result;
-const match = raw.match(/\{[\s\S]*\}/);
-console.log('RAW RESPONSE:', raw);
-console.log('MATCHED:', match ? match[0] : 'NO MATCH');
-const json = JSON.parse(match ? match[0] : raw);
+    const json = data.result;
     renderResults(json);
   } catch(err) {
     console.error(err);
