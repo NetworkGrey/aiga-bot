@@ -563,7 +563,7 @@ RESPONSE FORMAT — return ONLY valid JSON, no markdown:
     ).join('\n\n');
 
   // Railway endpoint — API key lives server-side, never in the browser
-  const RAILWAY_URL = 'https://worker-production-7cf2.up.railway.app/analyse';
+  const RAILWAY_URL = 'https://your-new-url.railway.app/analyse';
   try {
     const res = await fetch(RAILWAY_URL, {
       method: 'POST',
