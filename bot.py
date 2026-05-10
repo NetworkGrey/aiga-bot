@@ -1,20 +1,11 @@
 """
-AIGA Discord Bot v7
+AIGA Discord Bot
 Age of Empires Mobile AI Advisor
 Built by Network Grey | Powered by Anthropic Claude
-
-v7 changes:
-- Tight opening message with button-based KYC (3 clicks, no walls of text)
-- Claude judges when to ask clarifying questions mid-conversation
-- Clarifying questions use Discord buttons (up to 3 options)
-- max_tokens reduced to 400 for Discord brevity
-- Tier stored per user so KYC only runs once per session
 """
 
 import os
-import re
 import json
-import glob
 import asyncio
 import discord
 from discord.ui import View, Button
@@ -239,75 +230,15 @@ Rules:
 - Question must be under 12 words
 - Each option under 4 words
 - Only ask if the answer would genuinely differ based on the response
-- Do not ask about TC level or alliance type — that is handled in KYC"""
+- Do not ask about TC level or alliance type"""
 
 # ─── State Storage ────────────────────────────────────────────────────────────
 
 conversation_history = defaultdict(lambda: deque(maxlen=CONTEXT_WINDOW))
 rate_limit_tracker   = defaultdict(list)
-user_tiers           = {}       # {user_id: "Scout"|"Governor"|"Commander"|"Warlord"}
-kyc_state            = {}       # {user_id: {"step": 1|2|3, "tc": str, "alliance": str}}
 knowledge_base: dict[str, str] = {}
 
-# ─── KYC Button Views ─────────────────────────────────────────────────────────
-
-class TCView(View):
-    def __init__(self, user_id):
-        super().__init__(timeout=300)
-        self.user_id = user_id
-
-    @discord.ui.button(label="TC 1-14", style=discord.ButtonStyle.secondary)
-    async def tc_low(self, interaction, button):
-        await handle_kyc_tc(interaction, self.user_id, "TC 1-14")
-
-    @discord.ui.button(label="TC 15-21", style=discord.ButtonStyle.primary)
-    async def tc_mid(self, interaction, button):
-        await handle_kyc_tc(interaction, self.user_id, "TC 15-21")
-
-    @discord.ui.button(label="TC 22-26", style=discord.ButtonStyle.primary)
-    async def tc_high(self, interaction, button):
-        await handle_kyc_tc(interaction, self.user_id, "TC 22-26")
-
-    @discord.ui.button(label="TC 27+", style=discord.ButtonStyle.success)
-    async def tc_max(self, interaction, button):
-        await handle_kyc_tc(interaction, self.user_id, "TC 27+")
-
-
-class AllianceView(View):
-    def __init__(self, user_id):
-        super().__init__(timeout=300)
-        self.user_id = user_id
-
-    @discord.ui.button(label="Competitive", style=discord.ButtonStyle.danger)
-    async def alliance_comp(self, interaction, button):
-        await handle_kyc_alliance(interaction, self.user_id, "Competitive")
-
-    @discord.ui.button(label="Casual", style=discord.ButtonStyle.primary)
-    async def alliance_casual(self, interaction, button):
-        await handle_kyc_alliance(interaction, self.user_id, "Casual")
-
-    @discord.ui.button(label="Solo", style=discord.ButtonStyle.secondary)
-    async def alliance_solo(self, interaction, button):
-        await handle_kyc_alliance(interaction, self.user_id, "Solo")
-
-
-class TrackingView(View):
-    def __init__(self, user_id):
-        super().__init__(timeout=300)
-        self.user_id = user_id
-
-    @discord.ui.button(label="Yes — I track", style=discord.ButtonStyle.success)
-    async def track_yes(self, interaction, button):
-        await handle_kyc_tracking(interaction, self.user_id, "Yes")
-
-    @discord.ui.button(label="Somewhat", style=discord.ButtonStyle.primary)
-    async def track_some(self, interaction, button):
-        await handle_kyc_tracking(interaction, self.user_id, "Somewhat")
-
-    @discord.ui.button(label="Just starting", style=discord.ButtonStyle.secondary)
-    async def track_no(self, interaction, button):
-        await handle_kyc_tracking(interaction, self.user_id, "No")
-
+# ─── Clarify Button View ──────────────────────────────────────────────────────
 
 class ClarifyView(View):
     """Dynamic button view for mid-conversation clarifying questions."""
@@ -342,70 +273,6 @@ class ClarifyView(View):
                 reply_to=None
             )
         return callback
-
-# ─── KYC Handlers ─────────────────────────────────────────────────────────────
-
-def assign_tier(tc: str, alliance: str, tracking: str) -> str:
-    if tc == "TC 1-14":
-        return "Scout"
-    if tc == "TC 15-21":
-        if alliance == "Competitive":
-            return "Governor"
-        return "Scout" if tracking == "No" else "Governor"
-    if tc == "TC 22-26":
-        if alliance == "Competitive" and tracking in ("Yes", "Somewhat"):
-            return "Commander"
-        return "Governor"
-    # TC 27+
-    if alliance == "Competitive" and tracking == "Yes":
-        return "Warlord"
-    return "Commander"
-
-
-async def handle_kyc_tc(interaction, user_id, tc_value):
-    if interaction.user.id != user_id:
-        await interaction.response.send_message("This isn't your signup.", ephemeral=True)
-        return
-    kyc_state[user_id] = {"step": 2, "tc": tc_value, "alliance": "", "tracking": ""}
-    await interaction.response.edit_message(
-        content=f"**TC:** {tc_value}\n\nWhat type of alliance are you in?",
-        view=AllianceView(user_id)
-    )
-
-
-async def handle_kyc_alliance(interaction, user_id, alliance_value):
-    if interaction.user.id != user_id:
-        await interaction.response.send_message("This isn't your signup.", ephemeral=True)
-        return
-    kyc_state[user_id]["step"] = 3
-    kyc_state[user_id]["alliance"] = alliance_value
-    await interaction.response.edit_message(
-        content=f"**TC:** {kyc_state[user_id]['tc']} | **Alliance:** {alliance_value}\n\nDo you track your hero stats?",
-        view=TrackingView(user_id)
-    )
-
-
-async def handle_kyc_tracking(interaction, user_id, tracking_value):
-    if interaction.user.id != user_id:
-        await interaction.response.send_message("This isn't your signup.", ephemeral=True)
-        return
-    state = kyc_state[user_id]
-    state["tracking"] = tracking_value
-    tier = assign_tier(state["tc"], state["alliance"], tracking_value)
-    user_tiers[user_id] = tier
-
-    tier_messages = {
-        "Scout":     "You're a **Scout**. I'll keep it simple and focused on your biggest wins.",
-        "Governor":  "You're a **Governor**. I'll give you clear march and hero priorities.",
-        "Commander": "You're a **Commander**. I'll give you full analysis and event planning.",
-        "Warlord":   "You're a **Warlord**. Let's get into the detail — ask me anything.",
-    }
-
-    await interaction.response.edit_message(
-        content=f"✅ {tier_messages[tier]}\n\nWhat do you want to work on first?",
-        view=None
-    )
-    del kyc_state[user_id]
 
 # ─── Knowledge Base ───────────────────────────────────────────────────────────
 
@@ -452,7 +319,7 @@ def select_relevant_docs(query: str, kb: dict[str, str], max_docs: int = MAX_INJ
     return [kb[filename] for filename, _ in selected]
 
 
-def build_system_prompt_with_context(relevant_docs: list[str], kb: dict[str, str], tier: str = "") -> str:
+def build_system_prompt_with_context(relevant_docs: list[str], kb: dict[str, str]) -> str:
     sections = []
     if INDEX_DOC in kb:
         sections.append(
@@ -462,35 +329,30 @@ def build_system_prompt_with_context(relevant_docs: list[str], kb: dict[str, str
     for i, doc in enumerate(relevant_docs):
         sections.append(f"## REFERENCE DOCUMENT {i + 1}\n\n{doc}")
     if not sections:
-        base = SYSTEM_PROMPT
-    else:
-        injected = "\n\n---\n\n".join(sections)
-        base = (
-            f"{SYSTEM_PROMPT}\n\n---\n\n"
-            f"# INJECTED KNOWLEDGE BASE DOCUMENTS\n\n"
-            f"Use exact figures from these documents. They override any conflicting data above.\n\n"
-            f"{injected}"
-        )
-    if tier:
-        base += f"\n\n## CURRENT PLAYER TIER: {tier}\nCalibrate response depth and complexity accordingly."
-    return base
+        return SYSTEM_PROMPT
+    injected = "\n\n---\n\n".join(sections)
+    return (
+        f"{SYSTEM_PROMPT}\n\n---\n\n"
+        f"# INJECTED KNOWLEDGE BASE DOCUMENTS\n\n"
+        f"Use exact figures from these documents. They override any conflicting data above.\n\n"
+        f"{injected}"
+    )
 
 # ─── Clarification Logic ──────────────────────────────────────────────────────
 
-async def check_needs_clarification(query: str, tier: str) -> dict | None:
+async def check_needs_clarification(query: str) -> dict | None:
     """
     Ask Claude whether this query needs a clarifying question.
     Returns dict with question + options, or None if no clarification needed.
     """
     try:
-        context = f"Player tier: {tier}\nPlayer question: {query}"
         response = await asyncio.to_thread(
             anthropic_client.messages.create,
             model=CLAUDE_MODEL,
             max_tokens=150,
             temperature=0.1,
             system=CLARIFY_SYSTEM,
-            messages=[{"role": "user", "content": context}]
+            messages=[{"role": "user", "content": query}]
         )
         raw = response.content[0].text.strip()
         data = json.loads(raw)
@@ -506,10 +368,8 @@ async def check_needs_clarification(query: str, tier: str) -> dict | None:
 
 async def process_message(channel, user_id, user_name, content, reply_to=None):
     """Generate and send an AIGA response for a given user message."""
-    tier = user_tiers.get(user_id, "")
-
     # Check if this query needs clarification (button prompt)
-    clarification = await check_needs_clarification(content, tier)
+    clarification = await check_needs_clarification(content)
     if clarification:
         view = ClarifyView(user_id, clarification["options"], channel)
         msg = f"*{clarification['question']}*"
@@ -521,7 +381,7 @@ async def process_message(channel, user_id, user_name, content, reply_to=None):
 
     # No clarification needed — generate answer
     relevant_docs = select_relevant_docs(content, knowledge_base)
-    active_system = build_system_prompt_with_context(relevant_docs, knowledge_base, tier)
+    active_system = build_system_prompt_with_context(relevant_docs, knowledge_base)
     history = list(conversation_history[user_id])
     history.append({"role": "user", "content": content})
 
@@ -625,20 +485,6 @@ async def on_message(message: discord.Message):
         )
         return
 
-    # KYC — new user or mid-KYC
-    if user_id not in user_tiers:
-        if user_id in kyc_state:
-            # Mid-KYC — ignore text, buttons handle it
-            return
-        # First message — send tight opening with TC buttons
-        await message.reply(
-            "⚔️ **AIGA** — AoEM Strategic Advisor\n\nWhat's your Town Centre level?",
-            view=TCView(user_id)
-        )
-        kyc_state[user_id] = {"step": 1, "tc": "", "alliance": "", "tracking": ""}
-        return
-
-    # Normal message — process with optional clarification
     async with message.channel.typing():
         try:
             await process_message(
