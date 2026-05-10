@@ -236,6 +236,7 @@ Rules:
 
 conversation_history = defaultdict(lambda: deque(maxlen=CONTEXT_WINDOW))
 rate_limit_tracker   = defaultdict(list)
+user_threads: dict[int, discord.Thread] = {}
 knowledge_base: dict[str, str] = {}
 
 # ─── Clarify Button View ──────────────────────────────────────────────────────
@@ -467,8 +468,6 @@ async def on_ready():
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
-    if message.channel.name != AIGA_CHANNEL_NAME:
-        return
 
     user_id   = message.author.id
     user_name = message.author.display_name
@@ -477,30 +476,57 @@ async def on_message(message: discord.Message):
     if not content:
         return
 
+    # Accept messages from the main channel or the user's own private thread
+    in_main_channel = (
+        isinstance(message.channel, discord.TextChannel)
+        and message.channel.name == AIGA_CHANNEL_NAME
+    )
+    in_user_thread = (
+        isinstance(message.channel, discord.Thread)
+        and user_id in user_threads
+        and message.channel.id == user_threads[user_id].id
+    )
+
+    if not in_main_channel and not in_user_thread:
+        return
+
     # Rate limit check
     allowed, remaining = check_rate_limit(user_id)
     if not allowed:
-        await message.reply(
-            "You've reached your hourly message limit. Come back in a bit. ⚔️"
-        )
+        dest = user_threads[user_id] if user_id in user_threads else message.channel
+        await dest.send("You've reached your hourly message limit. Come back in a bit. ⚔️")
         return
 
-    async with message.channel.typing():
+    # Get or create private thread for this user
+    if user_id not in user_threads:
+        thread = await message.channel.create_thread(
+            name=f"AIGA — {user_name}",
+            type=discord.ChannelType.private_thread,
+            invitable=False,
+            message=message
+        )
+        await thread.add_user(message.author)
+        user_threads[user_id] = thread
+        print(f"[AIGA] Created private thread for {user_name}")
+    else:
+        thread = user_threads[user_id]
+
+    async with thread.typing():
         try:
             await process_message(
-                channel=message.channel,
+                channel=thread,
                 user_id=user_id,
                 user_name=user_name,
                 content=content,
-                reply_to=message
+                reply_to=None
             )
             if remaining == 2:
-                await message.channel.send(
+                await thread.send(
                     f"*{user_name} — {remaining} messages left in your hourly quota.*"
                 )
         except Exception as e:
             print(f"[AIGA] Unexpected error: {e}")
-            await message.reply("Something went wrong. Please try again.")
+            await thread.send("Something went wrong. Please try again.")
 
 
 # ─── Run ──────────────────────────────────────────────────────────────────────
