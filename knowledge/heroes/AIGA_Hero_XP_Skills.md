@@ -248,3 +248,29 @@ All tomes grant exactly their stated XP — no efficiency difference between den
 ---
 
 *Source: aoem-calculator HeroData.ts / SkillsData.ts (MIT Licence). Max level in data is 140 — current in-game cap may be lower. Verify current cap in-game. All XP values are exact from source data.*
+
+---
+
+## Hero Sub-Rank Structure — Confirmed
+*Source: Theria Games Hero Medals Calculator (Jayson, June 2025) — migrated from Calculator_Findings_Addendum*
+
+Hero rank progression has a two-tier structure: **main ranks (1-5)** AND **sub-ranks (0-5)** within each rank. The calculator takes both Rank and Sub-rank as separate inputs.
+
+AIGA's existing rank data covers cumulative medals for Rank 1 through Rank 6. Sub-rank progression within each rank is not yet fully documented.
+
+*[Full sub-rank medal costs and what sub-ranks unlock — verify in-game. May significantly affect medal planning advice.]*
+
+---
+
+## XP Tome Denominations — Confirmed
+*Source: Theria Games Extra Tools Calculator (Jayson, July 2025) — migrated from Calculator_Findings_Addendum*
+
+| Tome level | XP value |
+|---|---|
+| Lv. 2 | 500 XP |
+| Lv. 3 | 1,000 XP |
+| Lv. 4 | 10,000 XP |
+| Lv. 5 | 50,000 XP |
+| Lv. 6 | 100,000 XP |
+
+Confirmed correct — matches AIGA workbook.

@@ -185,3 +185,15 @@ All Day I-VI activities earn points simultaneously. Use remaining resources here
 ---
 
 *Source: aoem-calculator.com/mge and community verified data. Verify current values before major resource commitments as game updates may change scoring.*
+
+---
+
+## MGE Gear Calculation — Smithy Level Dependency
+*Source: Theria Games Equipment and Gems Calculator — MGE Mode (Jayson, August 2025) — migrated from Calculator_Findings_Addendum*
+
+Smithy level is an input in the MGE gear calculator alongside piece counts. Higher Smithy level = faster forging = more pieces possible in the event window = more MGE points.
+
+- Minimum Smithy level for Legendary gear: **15** (36% time reduction)
+- Recommended for MGE efficiency: **Smithy 25** (78% time reduction)
+
+Factor Smithy level into MGE Day II planning — a player at Smithy 15 vs Smithy 25 will have a significantly different forging capacity during the event.

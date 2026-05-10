@@ -622,3 +622,410 @@ more&hellip;
 
 ---
 
+# AIGA — Combat & PvP Addendum
+## Age of Empires Mobile
+### Sources: Van (YouTube — "Basics to Age of Empires Mobile" & Combat video, March 2026), community knowledge
+### Version: 1.0 | March 2026
+### Purpose: Open field combat mechanics, deck positioning, pre-fight assessment and PvP tips
+
+---
+
+## Pre-Fight Assessment — Power vs Merits
+
+Before engaging any player in open field PvP, check two numbers on their profile:
+
+| Metric | What it tells you |
+|---|---|
+| **Power** | How strong their account is overall — troops, buildings, research, heroes combined |
+| **Merits** | How experienced a fighter they are — accumulated through PvP victories and damage |
+
+**Reading the ratio:**
+- High power + high merits = experienced PvP player with strong troops. Engage with caution.
+- High power + low merits = strong account but little PvP experience — likely a builder or farmer. Favourable target.
+- Low power + high merits = battle-hardened player, possibly punching above their weight. Respect their experience.
+- Low power + low merits = new or inactive player. Easy target but low reward.
+
+**How to check:** Tap their profile → view power and merits side by side. Also visible on the server leaderboard for broader comparison.
+
+*Source: Van (community knowledge, March 2026)*
+
+---
+
+## March Deck — Slot Positioning for Open Field
+
+Your five march slots are not just an organisational tool — they directly affect deployment speed and physical spawn position on the battlefield.
+
+### Deployment speed
+Slots 1 and 5 (the far left and far right) can scroll off screen on smaller or average-sized mobile devices. In fast open field engagements you lose critical seconds scrolling to reach them. Place your primary combat march in **slot 3 (centre)** so it is always visible and immediately accessible.
+
+### Physical spawn position
+Troops deploy from the citadel in the same formation as the deck order. Example: if Lu Bu is in slot 3, Miyamoto in slot 2 and Ramesses in slot 4, they spawn with Lu Bu at the front and the other two flanking.
+
+**Recommended deck layout for active PvP:**
+
+| Slot | Role | Rationale |
+|---|---|---|
+| 1 | Secondary combat or counter march | Available but off-centre |
+| 2 | Support march | Flanks the main on deployment |
+| **3** | **Primary combat march (your main)** | **Always centre-screen, fastest access** |
+| 4 | Support march | Flanks the main on deployment |
+| 5 | Gathering or reserve | Least accessible slot |
+
+**Tactical note:** Because your main deploys at the front, it takes first contact with the enemy. If you want a tankier march to absorb initial damage, put it in slot 3. If you want your damage dealer hitting first, same logic applies.
+
+*Source: Van (community knowledge, March 2026)*
+
+---
+
+## Commander Skill Manual Trigger
+
+The commander skill auto-triggers on a cooldown, but you can also tap the skill icon manually to fire it earlier than the auto-trigger would. This gives approximately one extra second of advantage in tight open field fights — enough to land a hit before the enemy's skill fires.
+
+**Practical use:** In assassination-style open field jumps where seconds matter, tap the commander skill icon immediately on deployment. Do not wait for the auto-trigger.
+
+*Source: Van (community knowledge, March 2026)*
+
+---
+
+## Auto-Return Toggle — Keep Troops in the Field
+
+After every fight, troops default to automatically returning to the citadel. During active PvP or open field events this wastes time — troops march home, you manually send them back out, repeat.
+
+**Fix:** Find the auto-return toggle in the march settings and turn it off. Troops will stay in the field after each engagement until you manually recall them.
+
+**When to turn it back on:** Peace periods, gathering sessions, or any time you want troops automatically back in the citadel (hospital heals, overnight, etc.).
+
+*Source: Van (community knowledge, March 2026)*
+
+---
+
+## Merits — Ongoing PvP Tracking
+
+Merits accumulate through PvP activity and never reset. They function as a permanent record of combat engagement on your account.
+
+**AIGA advisory:** For alliance leaders assessing their own members' combat readiness, merits relative to power is a useful rough indicator of who is actively fighting vs who is building. A high-merit player at moderate power often outperforms a high-power low-merit player in rally and open field scenarios due to experience with counter play and timing.
+
+---
+
+## Golden Expedition Event
+
+A cross-kingdom invasion event where your alliance can enter and fight in an enemy kingdom's territory.
+
+**Key mechanic:** Enemy players can teleport to any available spawn point in their kingdom — not just near flags or forts. This means even if your alliance controls flags in an area, enemies can still teleport close to you from any free land tile.
+
+**Strategic implication:** Hive placement closer to the Imperial City gives better defensive positioning during Golden Expedition — you are harder to surround and have faster access to the key objectives.
+
+**AIGA note:** Full Golden Expedition scoring, rewards and rules are not yet in the AIGA knowledge base. *[verify in-game — add to knowledge base when detail available]*
+
+*Source: Van (community knowledge, March 2026)*
+
+---
+
+## PvP Practice Venues
+
+Two in-game modes for practising combat without real resource risk:
+
+| Mode | How to access | What you practice |
+|---|---|---|
+| **Apex Arena** | Expedition tab → Apex Arena | Set your offensive and defensive lineups, fight other governors. Daily and weekly rewards based on rank. |
+| **Radiance event** (1v1 practice) | Event Centre when active | Direct 1v1 matchups to test specific march compositions |
+
+**AIGA recommendation:** Always check battle reports after Apex Arena fights. The details tab shows exactly how your march performed — skill activations, damage dealt, healing received. This is the fastest way to identify weaknesses in your composition without risking real troops.
+
+---
+
+## Hero Hidden Gift Boxes
+
+On the hero profile page, certain heroes display small gift boxes that contain Empire Coins and items. These are one-time claims that appear when the hero reaches a certain level threshold.
+
+**Check regularly:** Scroll through your hero list and look for box icons — they are easy to miss. Especially check heroes that have recently levelled up.
+
+*Source: Van (community observation, March 2026) — exact level trigger [verify in-game]*
+
+---
+
+## Arabs Civilization — Undocumented
+
+Van plays Arabs civilization primarily for the food gathering speed bonus in the world. This civilization does not appear in the Fandom wiki's civilization list and is not in the AIGA Civilizations reference.
+
+**Implication:** The 8 civilizations documented in AIGA_Civilizations_Landmarks_Territory_Reference.md (Chinese, French, Byzantines, Romans, Egyptians, British, Japanese, Koreans) are not the complete list. Additional civilizations exist including Arabs.
+
+**Arabs — known detail (Van):**
+- Food gathering speed in world bonus
+- Suited to players who consume large quantities of food through heavy troop training
+
+*[Full Arabs civilization stats — verify in-game and add to Civilizations reference]*
+
+*Source: Van (community observation, March 2026)*
+
+---
+
+*Sources: Van — YouTube channel (March 2026). Community knowledge. Credit to Van for original observations on deck positioning, commander skill trigger, auto-return toggle, merits assessment and hero gift boxes. Reference Van specifically when using these insights in player advice.*
+# AIGA — World Map Mechanics Addendum
+## Age of Empires Mobile
+### Source: Theria Games — Age of Empires Mobile Map Guide (community guide by Roi B, November 2024)
+### Version: 1.0 | March 2026
+### Purpose: Supplements AIGA_Civilizations_Landmarks_Territory_Reference.md with undocumented world map mechanics
+
+---
+
+## Coordinate System
+
+Every location on the world map has an X and Y coordinate. Coordinates can be:
+- Typed directly into the map search to jump instantly to a location
+- Shared with alliance members for rally coordination, hive relocation, and attack planning
+
+**AIGA advisory for Warlord tier:** Share coordinates in alliance chat for rally targets, enemy city locations, and hive repositioning. Eliminates confusion from vague directions like "near the top left pass."
+
+*Source: Theria Games community guide (Roi B, November 2024)*
+
+---
+
+## Fog of War
+
+Unexplored areas of the map are covered in fog. Sending scouts into an area removes the fog, revealing terrain features and any enemies or players present.
+
+**Practical use:** Before a major offensive, scout the route and target area to reveal terrain and identify enemy positions. Fog of war is a genuine intelligence gap — do not attack blind.
+
+*Source: Theria Games community guide (Roi B, November 2024)*
+
+---
+
+## Birth Region Strategic Elements — Full Breakdown
+
+Four distinct strategic element types exist within the birth region, each providing different benefits to the conquering alliance:
+
+| Element | Strategic benefit | Notes |
+|---|---|---|
+| **Cities** | Capturing the citadel enhances resource production efficiency | Requires alliance rally to occupy |
+| **Crossings** | Controls travel routes between regions — secures troop movement, restricts enemy access | High-value PvP hotspot — contested frequently |
+| **Passes** | Narrow pathways through terrain barriers — control movement between regions | Defensive chokepoints and attack launch points |
+| **Monuments** | Improve attributes of specific soldier types | Improves combat stats for the relevant troop type |
+
+### Crossings — Strategic Importance
+Crossings are consistently among the highest-value contested locations outside of the Imperial City. Controlling a crossing gives an alliance:
+- Safer travel routes for their own troops
+- Control over enemy troop movement through the area
+- Resource flow management between regions
+- A defensible position that becomes a natural PvP flashpoint
+
+**AIGA advisory for alliance leaders:** Crossings are the primary territorial objective in the birth region before passes open to Kingsland. Establishing control of the crossing nearest your hive early significantly reduces vulnerability to cross-region raids.
+
+*Source: Theria Games community guide (Roi B, November 2024)*
+
+---
+
+## Additional Map Points of Interest
+
+Three categories of map features not previously documented in AIGA:
+
+| Feature | What it does |
+|---|---|
+| **Holy Sites** | Alliance control objectives — grant benefits to the controlling alliance *[full mechanics — verify in-game]* |
+| **Ruins** | Interact to receive temporary buffs — scattered across the map *[buff types — verify in-game]* |
+| **Alliance Buildings** | Fortresses and Towers — defensive structures alliances can build in their territory |
+
+*Source: Theria Games community guide (Roi B, November 2024)*
+
+---
+
+## Terrain as Strategic Barriers
+
+The birth region is deliberately shaped by natural terrain that restricts troop movement and creates defensive opportunities:
+
+- **Mountains** — impassable or slow-movement areas, create natural defensive lines
+- **Rivers** — movement barriers, typically crossed only at designated crossings
+- **Forests** — terrain features that affect movement and concealment
+
+**Implication:** Hive positioning relative to natural terrain matters. A hive backed against a river with a controlled crossing in front is significantly harder to raid than an open-field hive. Alliance leaders should consider terrain when choosing hive locations.
+
+*Source: Theria Games community guide (Roi B, November 2024)*
+
+---
+
+## Teleportation Types
+
+Two types of teleportation items exist for relocating your citadel:
+
+| Type | Requirement | Use case |
+|---|---|---|
+| **Territory Teleport** | Must land within alliance territory | Repositioning within your alliance's controlled area |
+| **Random Teleport** | No territory requirement | Moving to any available location — useful for joining a new server region or escaping danger |
+| **Targeted Relocation (limited-time)** | Issued to new players | Moving to a different birth region at game start to join a specific alliance |
+
+*Source: Theria Games community guide (Roi B, November 2024) + Official AoEM sources*
+
+---
+
+## Imperial City — Confirmed Benefits Summary
+
+Holding the Imperial City grants the controlling alliance:
+
+| Benefit category | Examples |
+|---|---|
+| Resources | Steady high-level resource supply — essential for sustaining army growth |
+| Combat buffs | Increased attack power, defense boosts, faster troop training speeds |
+| Special rewards | Rare items, advanced technologies, unique hero upgrades |
+| Prestige | Status as dominant server force — attracts allies and draws challengers |
+| Political power | Alliance leader can appoint a King (confirmed in AIGA Fandom reference) |
+
+**AIGA note:** The Imperial City is also a continuous conflict magnet. Holding it is as much a defensive challenge as a conquest. Alliance leaders holding the Imperial City should maintain full war configuration on all marches at all times.
+
+*Source: Theria Games community guide (Roi B, November 2024) — benefits confirmed against AIGA_Civilizations_Landmarks_Territory_Reference.md*
+
+---
+
+*Source: Theria Games — Age of Empires Mobile Map Guide (community guide by Roi B, November 11, 2024). therlagames.com. Community knowledge — verify all [verify in-game] items before using in player advice.*
+# AIGA — Game Modes Addendum
+## Age of Empires Mobile
+### Source: Age of Empires Mobile Fandom Wiki — Game Modes page (CC-BY-SA)
+### Version: 1.0 | March 2026
+### Purpose: Supplements AIGA_Game_Overview_Reference.md with game modes detail and corrections
+
+---
+
+## Corrections to AIGA_Game_Overview_Reference.md
+
+### Fishing
+**Previous (incorrect):** "Seaside Fishing — daily minigame, fish once everyday"
+**Corrected:** Fishing allows **3 free attempts per day**, not 1. Challenge at the dock 3 times daily for free food resources.
+
+---
+
+## Power Composition
+
+Power is a single number that represents total account strength. It is comprised of five components:
+
+| Component | What feeds it |
+|---|---|
+| Troop Power | Number and tier of troops trained |
+| Building Power | TC level and all building levels |
+| Technology Power | University and Mercenary Camp research completed |
+| Hero Power | Hero levels, ranks, gear, skills |
+| Theme Power | Cosmetic/theme unlocks |
+
+**Power bonus categories** (viewable via Portrait > Power Details):
+
+| Category | Key contributors |
+|---|---|
+| Economy | Resource production, gathering speed, building speed, research speed |
+| War | Marching speed, unit type bonuses, unit capacity, reinforcement limit |
+| Logistics | Training speed, training quantity, hospital healing speed |
+| City Defense | Siege bonus, defense bonus, wall durability |
+
+**Implication for AIGA advice:** When a player asks about power, it is the sum of all five components. A player with high troop power but low tech power has a different profile to one with high tech but low troops. Always assess composition, not just the total number.
+
+---
+
+## Siege and Defense Rules
+
+### Attacking another player's citadel
+- Causes **large casualties** on the attacking force — explicitly high-risk
+- Alliance technology has an active skill that reduces unit casualties during siege — activate before attacking
+- **Recommendation:** Avoid direct citadel attacks unless coordinated as a rally with strong alliance support
+
+### Defending your citadel or an ally's
+- **No units die during defense** (unless hospital is already at full capacity)
+- Safe to reinforce allies freely — zero death risk to the reinforcing player
+- When a citadel's durability drops to 0, the player is **teleported to a random map location**
+- The attacker can burn citadel durability and loot resources that exceed the warehouse protection limit while the citadel is defeated
+
+**Key tactical implication:** Always monitor hospital capacity before any defensive engagement. If hospital is full, incoming wounded troops will die instead of being hospitalised. Keep hospital below capacity during war periods.
+
+---
+
+## Battlefield Survivor Mode
+
+A standalone rogue-like survival mini-game mode separate from the main strategy layer. Not related to march composition or hero builds.
+
+**Basic mechanics:**
+- Play as Josephine navigating a battlefield using a joystick
+- Pick up XP gems to level up and gain abilities
+- Accumulate Holy Sword energy
+- Each round lasts approximately 3-6 minutes
+- Win by surviving for a set period or defeating the boss
+
+**Idle rewards:** Claim idle rewards daily even without playing — non-negotiable daily collect.
+
+**Progression:** Clear more levels to unlock better completion rewards.
+
+### Abilities (unlocked and upgraded during a run)
+
+| Ability | Base Effect | Evolved Effect |
+|---|---|---|
+| Wild Rose Arrow (Josephine default) | Randomly attacks closest enemy | Extra damage bonus + ricochet effect |
+| Military Domain | Deals continuous damage to nearby enemies | Significantly increases damage area and amount |
+| The Reaper | Generates 2 swirling blades around hero | Increased blade duration and damage |
+| Dagger Throwing | Fires 2 daggers forward | Significantly reduced cooldown |
+| Iaido Cleave | Increases damage range | Deals high damage to all enemies in a straight line |
+| Blaze Toss | Launches flaming cauldrons at 1 random location | Flaming area permanently follows hero movement |
+| Penitence Codex | AoE damage at 1 random enemy location | Continuous attacks on all locations |
+| Broadside Volley | Fires 5 bullets in a fan area in front | Fires multiple blazing spirits around hero |
+
+### Passive Effects (stackable bonuses)
+
+| Passive | Effect |
+|---|---|
+| Windwalker Boots | Increases movement speed |
+| Gale Feather | Increases damage and flight speed |
+| Chalice of Sacrifice | Increases health recovery speed |
+| Greedy Pocket | Increases XP gem pick-up area |
+| Lightning Fragment | Increases abilities' damage |
+
+### Strategy Guide (from wiki)
+
+- **Early stage:** Eliminate enemies fast, collect as many XP gems as possible. Prioritise damage abilities first.
+- **Middle stage:** Select passive effects that complement your ability choices. Pick up ground chests (health items, XP tomes) for survivability.
+- **Late stage:** Max ability levels then evolve them — evolution unlocks the advanced version that significantly boosts power.
+
+**AIGA note:** Battlefield Survivor is a self-contained mode. Hero levels, gear and skills from the main game do not apply here. It does not affect march power or account progression directly beyond idle reward collection and level completion rewards. Advise players to collect idle rewards daily but not to over-invest time if their main account has higher-priority activities.
+
+---
+
+## Auto Battle — Full Rules
+
+Auto battle sends troops to attack tribes or world targets automatically without manual input.
+
+### Requirements for auto battle
+- March must be led by a hero
+- March must currently be in the citadel (not deployed)
+- Troop count must exceed the preset minimum
+- Hospital capacity must be below the preset percentage limit
+
+### Single troop auto battle
+1. Tap magnifying glass icon
+2. Tap Auto Battle
+3. Select number of attacks
+4. Start — auto battle ends after completing the preset number
+
+### Multi-troop auto battle
+- Same requirements as single troop
+- Option to set next session to start automatically after all troops return
+- All troops must leave citadel simultaneously
+
+### Movement speed options
+- Default: each troop moves at its own speed
+- Same Movement Speed: all selected troops move at the slowest troop's speed
+- Spearhead: designated troop takes the most damage; in multi-troop attacks, all troops must arrive before the attack begins
+
+---
+
+## Updated Daily To-Play List (Confirmed)
+
+This is the official daily activity order from the wiki. Cross-references and confirms AIGA Game Overview daily checklist with one addition (Bulletin Board):
+
+1. Citadel Construction — keep all queues busy at all times
+2. Alliance Channel — check in, read officer instructions
+3. Event Center — check calendar, participate in active events
+4. World — gather resources, defeat tribes, optional player raids
+5. Hero Recruitment — free daily tavern pull
+6. Battlefield Survivor — claim idle rewards, clear levels
+7. VIP — claim daily VIP points and rewards
+8. Daily Quests — complete for activity rewards
+9. Fishing — **3 free attempts** at the dock for food resources
+10. Bulletin Board — check for game news and community events
+11. Official Communities — social media events and strategy content
+
+---
+
+*Source: Age of Empires Mobile Fandom Wiki — Game Modes page (CC-BY-SA). March 2026.*
