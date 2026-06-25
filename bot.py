@@ -22,7 +22,7 @@ ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 AIGA_CHANNEL_NAME = "aiga-advisor"
 
 RATE_LIMIT_MAX    = 10
-RATE_LIMIT_WINDOW = 3600
+RATE_LIMIT_WINDOW = 86400
 
 CONTEXT_WINDOW    = 10
 
@@ -494,7 +494,7 @@ async def on_message(message: discord.Message):
     allowed, remaining = check_rate_limit(user_id)
     if not allowed:
         dest = user_threads[user_id] if user_id in user_threads else message.channel
-        await dest.send("You've reached your hourly message limit. Come back in a bit. ⚔️")
+        await dest.send("You've reached your daily message limit. Come back in a bit. ⚔️")
         return
 
     # Get or create private thread for this user
@@ -522,7 +522,7 @@ async def on_message(message: discord.Message):
             )
             if remaining == 2:
                 await thread.send(
-                    f"*{user_name} — {remaining} messages left in your hourly quota.*"
+                    f"*{user_name} — {remaining} messages left in your daily quota.*"
                 )
         except Exception as e:
             print(f"[AIGA] Unexpected error: {e}")
