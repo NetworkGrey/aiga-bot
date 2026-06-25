@@ -1,6 +1,6 @@
 AIGA — Knowledge Base Master Index
 Network Grey | Age of Empires Mobile
-Version: 1.5 | Last updated: 9 May 2026
+Version: 1.6 | Last updated: June 2026
 
 Revision History
 Version
@@ -24,6 +24,9 @@ Added 13 new files. Hero reference chain updated (v1 and v2 superseded by v3). A
 v1.5
 9 May 2026
 Full folder restructure into 8 categories. 51 flat files consolidated to 35 (23 bot-facing). 2 superseded hero files deleted. 19 files absorbed into 9 consolidated documents. KEYWORD_MAP paths and recursive glob requirement flagged for bot.py.
+v1.6
+June 2026
+Mount System replaced with v6 DEV HANDOFF (30 confirmed traits, full adornments, corrected hero assignments). Rings Reference corrected to 35 rings (10 T0 / 14 T1 / 11 T2 — Sacred Sage confirmed 11th T2, Mamba absent). KEYWORD_MAP verified — no mismatches. Commit 72e676f.
 
 
 
@@ -101,7 +104,7 @@ heroes/AIGA_Mount_System.md
 Temperaments, traits, breeding rules, rarity chain (Epic x Epic = Epic only, Legendary x Legendary = Celestial Charger), adornments.
 Community / Network Grey
 Current
-Exact trait values for all mounts
+~30 heroes with no mount data (Hannibal, Justinian, Harald III, Sejong, Wu Wei, Kaso, Gao Meng, Axel, Yuan Xia, Leo, Luki, Narses, Nino and others). Lagertha: permanent knowledge gap — do not infer.
 
 
 
@@ -120,7 +123,7 @@ gear/AIGA_Rings_Reference.md
 All 35 rings — stats at max level, skill types, Jeweler's Marks as confirmed upgrade material. Merged from Rings_Reference + Rings_Skills_Addendum + Calculator_Findings rings section.
 aoem-calculator + Theria Games
 Current
-Jeweler's Marks exact quantities per upgrade level
+Jeweler's Marks exact quantities per upgrade level. T2 count: v2.2 had 9 (error) — confirmed 11 in-game June 2026.
 
 
 
@@ -688,8 +691,9 @@ TiMi / Level Infinite explicit fan content policy — not yet located
 Hero sub-rank medal costs — 5 sub-ranks per rank confirmed, costs unknown
 AIGA_Legal_AoEMobileGuides_Reference.md — missing from project, needs recreation
 High
-Maya Mutuala and Yellet hero pages — post-Oct 2025
-Missing heroes: Guan Yu, Yi Sun-Shin, Harald, Yodit, Tribhuwana, Toyotomi, Otto
+Maya Mutuala and Yellet — post-Oct 2025, not yet in any KB file
+Skill3/skill4 recommendations — pending AT data entry for majority of heroes
+Hero pairings — flagged KNOWLEDGE GAP in v8 for most heroes
 Frontline Escort event — full mechanics and scoring
 Golden Expedition — full scoring and rules
 Medium
@@ -706,6 +710,8 @@ Advent Wheel token mechanic — documented
 MEE day-specific training days — Days II, IV, V confirmed
 XP tome denominations — confirmed
 Advent wheel pack size — 5-spin at 4,200 IC confirmed
+Exact trait values for all mounts — 30 traits confirmed in-game (Gustav, S371 June 2026), full catalogue with effect ranges now in heroes/AIGA_Mount_System.md
+Ring canonical count — confirmed 35 in-game (10 T0 / 14 T1 / 11 T2). Ring of Mamba absent. Sacred Sage is 11th T2. v2.2 T2 count error corrected in gear/AIGA_Rings_Reference.md
 
 
 Data Verification Queue
