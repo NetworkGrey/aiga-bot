@@ -494,7 +494,7 @@ async def on_message(message: discord.Message):
     allowed, remaining = check_rate_limit(user_id)
     if not allowed:
         dest = user_threads[user_id] if user_id in user_threads else message.channel
-        await dest.send("You've reached your daily message limit. Come back in a bit. ⚔️")
+        await dest.send("You've reached your daily message limit. Come back in a bit, or go to aiga.networkgrey.co.za for more info. ⚔️")
         return
 
     # Get or create private thread for this user
