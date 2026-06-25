@@ -1,331 +1,357 @@
-# Age of Empires Mobile — Rings Complete Reference
-## AIGA Source Document v1.0
-## Source: aoem-calculator Rings Data.ts (MIT Licence, juan_jm/aoem-calculator on Codeberg)
+# AIGA — Signet Rings Reference
+## Network Grey | Age of Empires Mobile
+## Version: 2.2 | June 2026
 
 ---
 
-## Overview
+## Revision History
 
-Rings are equippable items that provide passive stat bonuses and a skill effect to heroes. Each hero equips one ring. Rings unlock at Town Centre level 18 (Milestone 15).
-
-There are 35 rings across 3 tiers. Higher tier rings have better base stats, higher max levels, and more powerful skills.
+| Version | Date | Changes |
+|---|---|---|
+| v1.0 | March 2026 | Initial rings reference. 35 rings, stats, skill types, Jeweler's Marks confirmed. |
+| v2.0 | June 2026 | Full rebuild. Added FTP tier ratings, hero-role ring stacks, ring builder logic, meta overrides, allocation cascade rules. Sources: Theria Games calculator + Fandom Wiki image verification + in-game confirmation + FTP tier list video (community, credited). |
+| v2.1 | June 2026 | Corrected Lu Bu's permanent T2 to Radiant Guardian (in-game verified by Gustav, overrides F2P-ignore rating for this hero specifically). Resolved Lagertha knowledge gap — Tranquil Water confirmed via AllClash. Added Divine Warrior as unverified/future ring (not in canonical set, source: AllClash + FTP video, not cross-confirmed by calculator or wiki). Added zero-combat-value T0 ranking rule (crit/damage stats over XP/gathering utility as placeholder). |
+| v2.2 | June 2026 | FINAL authoritative pass for dev handoff. Corrected "King Derek" → "King Derrick" spelling throughout (matches Hero Roster v8 canonical name). Cross-referenced against Hero Roster v8's `Ring Path` field — confirmed 14 heroes have full tiered T0→T1→T2 paths (Gustav's 13-hero roster + Lu Bu), explicitly documented that the remaining 62 heroes carry only a single unverified legacy ring value inherited from pre-v2 data, not a real tiered recommendation. This gap is now the single most important entry in Known Gaps and is the primary blocker for full ring builder rollout in app.py. No legacy single-ring values were upgraded to tiered paths in this pass — doing so without per-hero skill/role verification would be fabrication, not correction, per the project's standing rule that blank gaps ship and guessed values do not. |
+| v2.2 (count correction) | June 2026 | Canonical ring count confirmed as **35** (10 T0 / 14 T1 / 11 T2) — corrects v2.2's draft note that mis-stated 33 and a header typo that said "9 rings" for Tier 2. No ring of Mamba exists in the canonical set. Sacred Sage is the 11th confirmed T2 ring (Balance bracket). |
 
 ---
 
-## Ring Tiers
+## Sources
 
-| Tier | Type | Max level | Craft cost | Number available |
+| Source | Trust level | Used for |
+|---|---|---|
+| Theria Games calculator (HTML) | Medium-high | Ring names, stat values, skill effects, craft costs |
+| Fandom Wiki image gallery | Medium | Ring name verification (image filenames as proxy) |
+| In-game verification (Gustav, S371) | Highest | Canonical 35-ring set confirmed |
+| FTP tier list video (community YouTube) | Medium — community | Usage tier ratings, meta overrides, hero-specific flags |
+| aoem-calculator (MIT, Codeberg) | Highest | MGE scoring for ring crafting |
+| AllClash hero build guides | Medium — community | Hero-specific ring pairings (e.g. Lagertha) |
+| aoemobileguides.com hero guides | Medium — community | Hero skills, specialties, pairings (no ring data) |
+
+---
+
+## Canonical Ring Set — 35 Rings
+
+**Tier 0 (Flower) — 10 rings | Max lv30 | Craft cost: 200 jeweler's coins**
+**Tier 1 (Animal) — 14 rings | Max lv40 | Craft cost: 600 jeweler's coins**
+**Tier 2 (Element) — 11 rings | Cheap: 1,600 coins (5 rings) | Balance: 4,000 coins (6 rings)**
+
+Total: 10 + 14 + 11 = **35 rings**.
+
+---
+
+## Core Rules
+
+- Rings unlock at TC18
+- One ring per hero — cannot equip two rings on one hero
+- One of each ring type across the entire roster — no duplicate ring names across all heroes simultaneously
+- When a ring is upgraded (T0→T1), the T0 ring returns to inventory and becomes available for reassignment
+- When a T1 ring is acquired, the T0 ring cascades to the next priority hero without a ring
+- Every hero should have a ring — any ring beats no ring
+- Allocation priority: M1 Lead → M1 Sup1 → M1 Sup2 → M2 Lead → ... → M5 Sup2
+- Exception: meta-specific overrides apply regardless of march position (see hero flags below)
+
+---
+
+## Ring Status Tags (Ring Builder)
+
+When advising a player on ring status, use these three tags:
+
+- **fitted** — ring is owned and currently equipped to this hero
+- **available** — ring is owned but not equipped to this hero (on another hero or in inventory)
+- **not acquired** — ring not yet crafted or owned
+
+---
+
+## Tier 0 — Flower Rings (10 rings)
+
+| Ring | Skill Name | Skill Type | Skill Effect (max lv30) | Combat Value | Notes |
+|---|---|---|---|---|---|
+| Daisy | Double Strike | Second strike | 20% chance: might dmg on normal attack (155% rate, might bonus) | High | Best T0 for DPS leads. Must-have placeholder for any warrior/might hero |
+| Clover | Armor Maintenance | Turn-based | 50% chance: -25% dmg taken for 3s every 6s | High | Best T0 for survivability. Suits any support or lead needing tankiness |
+| Tulip | Mighty Strike | Active | 25% chance: might dmg to enemy troop (125% rate, might bonus) | Medium-high | Good T0 for might-damage leads. PIK and SW leads |
+| Rose | Surprise Attack | Active | 25% chance: strategy dmg to enemy troop (125% rate, strategy bonus) | Medium | Strategy-damage heroes only. Weak on might leads |
+| Lily | Rest and Recover | Active | 25% chance: recover troop units (150% rate, strategy bonus) | Medium | Recovery/support heroes. Not for DPS leads |
+| Iris | Critical Blade | Passive | +5.5% hero crit rate | Medium | Generic crit boost. Decent on any hero |
+| Hyacinth | Battle Review | Passive | +25% hero XP gained | Zero combat | Levelling only — unequip before combat or events |
+| Laurel | Siege Tactics | Passive | +89 hero siege | Zero combat | Siege march only (King Derrick/Josephine/Harald). No value on combat heroes |
+| Violet | Hands of Industry | Passive | +20% gathering speed | Zero combat | Gathering heroes only (Diao Chan, Cleopatra, Darius) |
+| Sunflower | Bumper Harvest Omen | Passive | +12% resources on successful gather | Zero combat | Gathering heroes only |
+
+**Best T0 combat:** Daisy (DPS lead) or Clover (support/survivability)
+**Gathering-only T0:** Violet, Sunflower — never equip on combat heroes
+**Avoid on combat heroes:** Hyacinth, Laurel
+
+**T0 placeholder ranking rule:** when no combat-relevant T0 is available, always prefer a ring with an active combat stat (Iris +crit rate, Tulip/Rose active damage chance) over a zero-combat-value ring (Hyacinth XP, Laurel siege, Violet/Sunflower gathering). A passive combat stat that's always active beats a utility stat that requires unequipping around fights. Example: Iris over Hyacinth as a combat-march placeholder — crit rate applies in every fight, XP gain has no battlefield value and requires manual swapping.
+
+---
+
+## Tier 1 — Animal Rings (14 rings)
+
+| Ring | Skill Name | Skill Type | Skill Effect (max lv40) | FTP Rating | Notes |
+|---|---|---|---|---|---|
+| Night Wolf | Ablaze Spirit | Passive | Every 9 normal attacks: +25% normal/second-strike dmg (might bonus), -35 armor for 3s | Must-have | **LU BU SPECIFIC** — see meta override below |
+| Falcon | Blessing of Oasis | Turn-based | Every 9s: recover units (210% rate) OR -32% dmg taken for 3s | Must-have | Best universal support ring. Suits any support slot on any march |
+| Boar | Burning Will | Passive | Below 60% units: +42% passive skill dmg | Must-have | Best for PIK supports. Strong on Cyrus-type heroes |
+| Bear | All Out | Passive | -20 armor on all heroes, +105 commander might | Great | CAV/SW DPS leads. Sacrifices armor for might damage |
+| Serpent | Strategy and Might | Passive | +65 strategy (might bonus) | Great | Tactical SW and strategy-based heroes. Suits Sun Tzu formations |
+| Deer | Coercion | Passive | -22% random enemy hero dmg, +22% one of your hero's dmg | Great | Flexible — suits support slots on any march type |
+| Lion | Heroic Lineage | Passive | +65 might/strategy/armor (flat) | Good-flexible | Generic flat stat boost. Works on any hero, any march |
+| Crow | Twist of Fate | Active | 30% chance: steal 55 might/strategy/armor from enemy for 3s | Flexible | Tactical formations only. Not ideal for F2P warrior lineups |
+| Badger | Armor of Steel | Passive | First 18s: -31.5% normal attack and second-strike dmg taken | Flexible | Counter to Lu Bu-heavy metas. Strong on PIK |
+| Seahorse | Unyielding Faith | Passive | If troop takes >1% max units strategy dmg in one hit, -20% strategy dmg taken for 6s | Flexible | Counter to strategy meta. Situational |
+| Shark | Punisher | Passive | Each normal attack: -1% target recovery effect, stacks to 50 | Okay-ignore | Healing debuffer. Niche and slow to activate. Generally avoid |
+| Steed | Load Boost | Passive | +20% gathering speed, +20% troop load | Gathering only | Permanent fit for gathering lead (Diao Chan). Never equip on combat hero |
+| Rhino | Breach | Active | 20% chance: 525 wall durability dmg (siege bonus) | Siege only | Siege march only. No combat value |
+| Elephant | Siege Master | Passive | +102 hero siege | Siege only | Siege march only. No combat value |
+
+**Must-have T1:** Night Wolf (Lu Bu only), Falcon (any support), Boar (PIK support)
+**Gathering-only T1:** Steed — never equip on combat hero
+**Siege-only T1:** Rhino, Elephant — only for dedicated siege march
+
+---
+
+## META OVERRIDE — Night Wolf / Lu Bu
+
+**Night Wolf is a Lu Bu-specific ring regardless of march position.**
+
+Lu Bu's secondary strike mechanic triggers crits when combined with Night Wolf's every-9-attacks buff. This produces the 40k-50k damage spikes seen in top Lu Bu marches. Equipping Night Wolf on any other hero produces a fraction of that value.
+
+**Rule:** Night Wolf always goes to Lu Bu first. If Lu Bu is not in the roster, Night Wolf then follows normal march priority allocation.
+
+**Lu Bu's full confirmed ring path (in-game verified, Gustav, S371):**
+Daisy → Night Wolf → Radiant Guardian
+
+This overrides the general F2P-ignore rating on Radiant Guardian for Lu Bu specifically. Radiant Guardian's Flurry of Blows (second-strike activation + Double Attack) synergises directly with Lu Bu's crit-chain kit the same way Night Wolf does. In-game verification outranks the community FTP tier list per source hierarchy (see Sources table). Radiant Guardian remains F2P-ignore for all other heroes.
+
+---
+
+## META OVERRIDE — Lagertha (W.SW 3rd Slot)
+
+**Confirmed ring path:** Daisy (T0) → Night Wolf (T1, if not claimed by Lu Bu) → Tranquil Water (T2)
+
+Source: AllClash hero build guide lists Divine Warrior + Tranquil Water as Lagertha's pairings. Tranquil Water is in the verified 35-ring canonical set and is adopted as her confirmed T2. Divine Warrior is NOT in the canonical set (not found in Theria Games calculator or Fandom wiki) — flagged as an unverified/possible future ring, do not recommend until cross-confirmed.
+
+Lagertha role confirmed via aoemobileguides.com: Legendary SW, specialties Warrior/Piercing/Active, secondary striker kit (Berserker's Shield Dance, Valkyrie's Edge). Pairs with Yodit, Constantine, Miyamoto Musashi.
+
+---
+
+## Tier 2 — Element Rings (11 rings)
+
+### Cheap T2 (1,600 jeweler's coins) — 5 rings
+
+| Ring | Skill Name | Skill Type | Skill Effect (max lv50) | FTP Rating | Notes |
+|---|---|---|---|---|---|
+| Tranquil Water | Light's Protection | Passive | First 18s of battle: -40% troop dmg taken | Must-have | Best general survivability ring in game. Suits any march lead or support |
+| Lofty Mountain | Accumulating Strength | Passive | First 18s: -15% might dmg taken (armor bonus). After 18s: +15% troop dmg (strategy bonus) | Must-have | Best general DPS lead ring. Open field and rally. Suits SW/CAV leads |
+| Effulgent Sun | Firm Onslaught | Active | 30% chance: charge 3s then massive might dmg (400% rate, might bonus) | Okay | Charge delay is a weakness. Not recommended as priority pick |
+| Azure Moon | Foreboding of Destruction | Active | 25% chance: charge 3s then massive strategy dmg (480% rate, strategy bonus) | Okay | Charge delay is a weakness. Strategy heroes only |
+| Scorching Flame | Heroic Moment | Passive | On Commander Skill use: +22% all heroes' might for 9s | Okay | Requires good rage generation. Situational |
+
+### Balance T2 (4,000 jeweler's coins) — 6 rings
+
+| Ring | Skill Name | Skill Type | Skill Effect (max lv50) | FTP Rating | Notes |
+|---|---|---|---|---|---|
+| Skyward Knight | Cost of Victory | Passive | -15% hero dmg dealt (unpurifiable), +17% commander dmg (strategy bonus), +10% sig activation | Must-have | Best support ring for tactical formations. Suits SW/ARC support slots |
+| Messenger of Destruction | Perception | Passive | -20% normal attack dmg (unpurifiable), +75% passive skill dmg | Must-have | Best PIK lead ring. Non-negotiable for Cyrus-type leads |
+| Everflame Wings | Silencing Flame | Turn-based | Every 9s: Burn, +5% enemy strategy dmg taken for 9s, 30% chance to Silence 3s | Late-game BIS | Best tactical formation ring. Silence mechanic is game-changing at lv30+ |
+| Sacred Sage | Silent Oath | Passive | Disables active skills (unpurifiable), +55% turn-based dmg and healing effect | Late-game BIS | Turn-based formations only (Marshall PIK). Julius Caesar/Octavian type heroes |
+| Radiant Guardian | Flurry of Blows | Turn-based | Every 6s: +5% second-strike activation, 100% Double Attack for 3s | F2P ignore* | Mulan/Belisarius specific. No F2P formation needs this ring. *Exception: confirmed BIS for Lu Bu (see meta override) |
+| Lord of Eastern Heavens | Decree of Victory | Passive | -25% active skill dmg (unpurifiable), +100% normal attack dmg | Ignore | Explicitly rated ignore by community. Even spenders regret this purchase. Avoid |
+
+**Must-have T2 (cheap):** Tranquil Water, Lofty Mountain
+**Must-have T2 (balance):** Skyward Knight, Messenger of Destruction
+**Late-game BIS:** Everflame Wings, Sacred Sage
+**Avoid:** Lord of Eastern Heavens (ignore tier regardless of cost), Radiant Guardian (F2P ignore, except Lu Bu)
+
+### Unverified / Possible Future Rings — DO NOT RECOMMEND
+
+| Ring | Source | Status |
+|---|---|---|
+| Divine Warrior | AllClash (Lagertha pairing), FTP tier video | NOT in canonical 35-ring set. Not found in Theria Games calculator or Fandom wiki gallery. Possible future ring or AllClash error. *[verify in-game before use]* |
+| Celestial Spark | FTP tier video only | Same status — unverified, not in canonical set |
+| Radiant Thunder | FTP tier video only | Same status — unverified, not in canonical set |
+| Siege of Judgment / Sacred Siege | FTP tier video only | Likely mistranscription of Sacred Sage — do not treat as separate ring |
+
+---
+
+## Hero Ring Stacks — Best T0 / T1 / T2 Per Hero Role
+
+Used by ring builder to answer "what is the best ring for [hero]?" regardless of player inventory.
+Status tags (fitted / available / not acquired) are applied when player context is provided.
+
+### M1 — Swordsmen Rally March
+
+| Hero | Role | Best T0 | Best T1 | Best T2 |
 |---|---|---|---|---|
-| 0 | Flower rings | 30 | 200 | 10 |
-| 1 | Animal rings | 40 | 600 | 14 |
-| 2 | Element/Special rings | 50 | 1,600 or 4,000 | 11 |
+| Musashi | SW DPS Lead | Daisy | Night Wolf | Lofty Mountain |
+| Yodit | SW DPS Support | Clover | Falcon | Skyward Knight |
+| Hammurabi | SW Buff Support | Clover | Lion | Tranquil Water |
+| Lagertha | SW Secondary Striker (3rd slot) | Daisy | Night Wolf (if available) | Tranquil Water *(confirmed, AllClash)* |
+
+### M2 — Pikemen Rally March
+
+| Hero | Role | Best T0 | Best T1 | Best T2 |
+|---|---|---|---|---|
+| Cyrus | PIK Lead | Tulip | Boar | Messenger of Destruction |
+| Joan | PIK Counterattack Support | Clover | Falcon | Tranquil Water |
+| Boudica | PIK Damage Support | Tulip | Bear | Everflame Wings |
+
+### M3 — Cavalry March
+
+| Hero | Role | Best T0 | Best T1 | Best T2 |
+|---|---|---|---|---|
+| Lu Bu | CAV DPS Lead | Daisy | Night Wolf *(meta override)* | Radiant Guardian *(in-game verified override)* |
+| Guan Yu | CAV Support | Tulip | Bear | Scorching Flame |
+| Timur | CAV/ARC Support | Lily | Deer | Azure Moon |
+
+### M4 — Archer March
+
+| Hero | Role | Best T0 | Best T1 | Best T2 |
+|---|---|---|---|---|
+| Yi Sun-Shin | ARC Lead | Daisy | Falcon | Tranquil Water |
+| Bellevue | ARC Support | Clover | Falcon | Everflame Wings |
+| Henry V | ARC Support | Iris | Badger | Skyward Knight |
+
+### M5 — Gathering March (Peace Config)
+
+| Hero | Role | Best T0 | Best T1 | Best T2 |
+|---|---|---|---|---|
+| Diao Chan | Gathering Lead | Violet | Steed | — (no T2 gathering ring) |
+| Cleopatra | Gathering Support | Sunflower | Steed* | — |
+| Darius | Gathering/PIK Support | Laurel | Steed* | — |
+
+*Steed — only one exists. Diao Chan (M5 Lead) gets priority. Cleopatra and Darius use T0 gathering rings as permanent ceiling until second Steed is crafted.
 
 ---
 
-## Upgrade Costs Per Level
+## Ring Allocation Cascade Rules
 
-### Tier 0 rings (lv1-30) — Dust cost per level group
-| Level range | Dust per level |
-|---|---|
-| 1-4 | 10 |
-| 5-9 | 20 |
-| 10 | 45 |
-| 11-14 | 30 |
-| 15-19 | 40 |
-| 20 | 90 |
-| 21-24 | 60 |
-| 25-29 | 80 |
-| 30 | 150 |
-
-### Tier 1 and 2 rings (lv31-50) — Iron Meteorite required
-| Level range | Meteorite per level |
-|---|---|
-| 40 | 15 |
-| 41-50 | 12 |
+1. Assign permanent ring (best T2) to each hero in M1 Lead → M5 Sup2 priority order, no duplicates
+2. Meta overrides apply before march priority (Night Wolf → Lu Bu regardless of march)
+3. When player owns a ring, check cascade: does this hero already have a better ring? If yes, pass it down
+4. When a hero upgrades T0 → T1: T0 ring returns to pool, assign to next ringless hero in priority order
+5. When a hero upgrades T1 → T2: T1 ring replaces T0 on the next hero in the cascade, T0 continues down
+6. Gathering rings (Violet, Sunflower, Steed) never enter the combat cascade — they stay in the M5 pool
+7. Siege rings (Laurel, Rhino, Elephant) never enter the combat cascade — they stay in the dedicated siege march pool
+8. Ignore-tier rings (Lord of Eastern Heavens, Radiant Guardian for F2P) — flag if player has them equipped, suggest reassignment
 
 ---
 
-## MGE Scoring for Rings
+## Gathering Sub-Pool
 
-| Action | MGE pts |
+These rings never enter the general combat cascade — they are allocated only within the M5 gathering march:
+
+| Ring | Tier | Effect |
+|---|---|---|
+| Violet | T0 | +20% gathering speed |
+| Sunflower | T0 | +12% resources on successful gather |
+| Steed | T1 | +20% gathering speed, +20% troop load |
+
+Diao Chan (M5 Lead) gets priority on Steed since only one exists per the current ring economy. Cleopatra and Darius hold T0 gathering rings as their ceiling until a second Steed is crafted.
+
+---
+
+## Siege Sub-Pool
+
+These rings never enter the general combat cascade — they are allocated only within a dedicated siege march:
+
+| Ring | Tier | Effect |
+|---|---|---|
+| Laurel | T0 | +89 hero siege |
+| Rhino | T1 | 20% chance: 525 wall durability dmg (siege bonus) |
+| Elephant | T1 | +102 hero siege |
+
+No combat value on a standard march — only relevant for heroes dedicated to siege duty (e.g. King Derrick, Josephine, Harald in a siege-specific assignment).
+
+---
+
+## MGE Ring Scoring
+
+| Activity | MGE Points |
 |---|---|
 | Craft 1 ring | 2,000 |
-| Use 1 Copper Dust | 400 |
-| Use 1 Silver Dust | 1,000 |
-| Use 1 Fine Gold | 3,000 |
-| Use 1 Meteor Steel | 20,000 |
+| Copper Dust | 400 |
+| Silver Dust | 1,000 |
+| Fine Gold | 3,000 |
+| Meteor Steel | 20,000 |
+
+Save ring crafting for MGE Day II (Hero Growth day) for maximum point efficiency.
 
 ---
 
-## Tier 0 — Flower Rings (Max Level 30)
+## Full Roster Ring Coverage Status — 76 Heroes
 
-Stat formula: base + (scaling × (level-1)). At max lv30: base + (scaling × 29).
+This section is the authoritative status check against `AIGA_Hero_Roster_v8.md`'s `Ring Path` field, cross-referenced for this handoff.
 
-| Ring | Stat 1 | At lv30 | Stat 2 | At lv30 | Skill | Skill type |
-|---|---|---|---|---|---|---|
-| Ring of Clover | Troop attack | 6.8% | Troop defence | 6.8% | Armor Maintenance | Turn-based |
-| Ring of Tulip | Troop attack | 6.8% | Troop defence | 6.8% | Mighty Strike | Active |
-| Ring of Violet | Troop defence | 6.8% | Troop health | 3.4% | Hands of Industry | Passive |
-| Ring of Daisy | Troop attack | 6.8% | Troop defence | 6.8% | Double Strike | Secondary strike |
-| Ring of Iris | Troop attack | 6.8% | Troop defence | 6.8% | Critical Blade | Passive |
-| Ring of Rose | Troop attack | 6.8% | Troop defence | 6.8% | Surprise Attack | Active |
-| Ring of Hyacinth | Troop attack | 6.8% | Troop health | 3.4% | Battle Review | Passive |
-| Ring of Lily | Troop attack | 6.8% | Troop health | 3.4% | Rest and Recover | Active |
-| Ring of Laurel | Troop attack | 6.8% | Troop defence | 6.8% | Siege Tactics | Passive |
-| Ring of Sunflower | Troop attack | 6.8% | Troop health | 3.4% | Bumper Harvest Omen | Passive |
+### Tier 1 — Fully Verified Tiered Paths (14 heroes)
 
-**Best Tier 0 for combat:** Ring of Tulip (attack + defence + active skill trigger) or Ring of Clover (attack + defence + turn-based). Both give identical stat values at lv30 — skill type determines which is better for a specific hero.
+These heroes have a confirmed T0 → T1 → T2 progression, sourced either from Gustav's in-game roster (this session) or from community hero-build guides (AllClash, aoemobileguides.com):
 
-**Note on Ring of Violet:** Musashi currently uses Ring of Tulip (lv10). Josephine uses Ring of Violet (lv1). Tier 0 rings are a starting point — upgrade to Tier 1 animal rings as resources allow.
-
----
-
-## Tier 1 — Animal Rings (Max Level 40)
-
-All Tier 1 rings cost 600 to craft.
-
-| Ring | Stat 1 | At lv40 | Stat 2 | At lv40 | Skill | Skill type |
-|---|---|---|---|---|---|---|
-| Ring of Bear | Commander Might dmg | 8.8% | Troop attack | 15.4% | All Out | Passive |
-| Ring of Rhino | Commander damage | 6.6% | Troop defence | 11.0% | Breach | Active |
-| Ring of Steed | Troop damage | 22.0% | Troop health | 11.0% | Load Boost | Passive |
-| Ring of Crow | Troop damage | 17.6% | Troop defence | 13.2% | Twist of Fate | Active |
-| Ring of Seahorse | Troop damage | 17.6% | Troop health | 6.6% | Unyielding Faith | Passive |
-| Ring of Shark | Skill damage | 22.8% | Troop defence | 15.4% | Punisher | Passive |
-| Ring of Badger | Commander damage | 6.6% | Troop defence | 11.0% | Armor of Steel | Passive |
-| Ring of Elephant | Troop damage | 17.6% | Troop health | 6.6% | Siege Master | Passive |
-| Ring of Lion | Troop attack | 17.6% | Troop defence | 13.2% | Heroic Lineage | Passive |
-| Ring of Serpent | Troop damage | 17.6% | Troop defence | 13.2% | Strategy and Might | Passive |
-| Ring of Deer | Troop skill dmg red | 6.2% | Troop damage reduction | 6.2% | Coercion | Passive |
-| Ring of Falcon | Normal attack dmg | 15.4% | Troop defence | 13.2% | Blessing of Oasis | Turn-based |
-| Ring of Night Wolf | Commander Might dmg | 8.8% | Troop attack | 13.2% | Ablaze Spirit | Passive |
-| Ring of Boar | Troop damage | 17.6% | Troop damage reduction | 15.1% | Burning Will | Passive |
-
-**Best Tier 1 for attack leads:** Ring of Steed (22% troop damage) or Ring of Shark (22.8% skill damage) — highest offensive values.
-
-**Best Tier 1 for defence/survival:** Ring of Boar (17.6% damage + 15.1% damage reduction) or Ring of Deer (double damage reduction).
-
-**Best overall Tier 1 for combat lead:** Ring of Steed or Ring of Crow — both give strong troop damage with secondary survivability stats.
-
----
-
-## Tier 2 — Element and Special Rings (Max Level 50)
-
-Two cost tiers within Tier 2: 1,600 craft cost (standard) and 4,000 craft cost (premium).
-
-### Standard Tier 2 (craft cost 1,600)
-
-| Ring | Stat 1 | At lv50 | Stat 2 | At lv50 | Stat 3 | At lv50 | Skill | Type |
-|---|---|---|---|---|---|---|---|---|
-| Tranquil Water | Skill dmg reduction | 10.8% | Troop defence | 10.8% | Troop health | 5.4% | Light's Protection | Passive |
-| Lofty Mountain | Skill dmg reduction | 10.8% | Troop defence | 21.6% | Troop health | 5.4% | Accumulating Strength | Passive |
-| Scorching Flame | Skill dmg reduction | 10.8% | Rage recovery | 16.2% | Troop attack | 10.8% | Heroic Moment | Passive |
-| Effulgent Sun | Skill dmg reduction | 10.8% | Troop attack | 13.5% | Troop defence | 10.8% | Firm Onslaught | Active |
-| Azure Moon | Skill dmg reduction | 10.8% | Troop attack | 13.5% | Troop defence | 10.8% | Foreboding of Destruction | Active |
-
-### Premium Tier 2 (craft cost 4,000)
-
-| Ring | Stat 1 | At lv50 | Stat 2 | At lv50 | Stat 3 | At lv50 | Skill | Type |
-|---|---|---|---|---|---|---|---|---|
-| Radiant Guardian | Healing effect | 26.5% | Troop attack | 10.8% | Troop defence | 10.8% | Flurry of Blows | Turn-based |
-| Lord of Eastern Heavens | Skill dmg reduction | 10.8% | Troop attack | 16.2% | Troop health | 8.1% | Decree of Victory | Passive |
-| Messenger of Destruction | Skill dmg reduction | 10.8% | Troop attack | 10.8% | Troop defence | 10.8% | Perception | Passive |
-| Sacred Sage | Skill dmg reduction | 10.8% | Troop defence | 10.8% | Troop health | 5.4% | Silent Oath | Passive |
-| Everflame Wings | Skill dmg reduction | 10.8% | Troop attack | 10.8% | Troop defence | 10.8% | Silencing Flame | Turn-based |
-| Skyward Knight | Skill dmg reduction | 10.8% | Troop attack | 16.2% | Troop defence | 16.2% | Cost of Victory | Passive |
-
-**Best Tier 2 for attack leads:** Lord of Eastern Heavens (attack 16.2% + health 8.1%) or Skyward Knight (attack 16.2% + defence 16.2%) — both strong all-round.
-
-**Best Tier 2 for support/recovery:** Radiant Guardian (healing 26.5% — best healing ring available, suited to Hammurabi or Tokugawa).
-
-**Best Tier 2 overall for rally combat:** Skyward Knight — highest combined offensive and defensive values at lv50.
-
----
-
-## Ring Priority Recommendations by Hero
-
-| Hero | Current ring | Recommended upgrade path |
+| Hero | Confirmed Path | Source |
 |---|---|---|
-| Musashi | Ring of Tulip (T0 lv10) | → Ring of Steed or Ring of Crow (T1) → Lord of Eastern Heavens (T2) |
-| Josephine | Ring of Violet (T0 lv1) | → Ring of Crow or Ring of Steed (T1) |
-| Hammurabi | None | → Any T0 attack ring → Ring of Boar (T1) for survivability |
-| Joan of Arc | None | → Ring of Tulip or Clover (T0) → Ring of Crow (T1) |
-| Wu Wei | None | → Any T0 ring → Ring of Serpent (T1) |
+| Lu Bu | Daisy → Night Wolf → Radiant Guardian | In-game verified, Gustav S371 |
+| Musashi | Daisy → Night Wolf → Lofty Mountain | Gustav's 15-hero lineup, this session |
+| Yodit | Clover → Falcon → Skyward Knight | Gustav's 15-hero lineup, this session |
+| Hammurabi | Clover → Lion → Tranquil Water | Gustav's 15-hero lineup, this session |
+| Cyrus | Tulip → Boar → Messenger of Destruction | Gustav's 15-hero lineup, this session |
+| Joan of Arc | Clover → Falcon → Tranquil Water | Gustav's 15-hero lineup, this session |
+| Boudica | Tulip → Bear → Everflame Wings | Gustav's 15-hero lineup, this session |
+| Guan Yu | Tulip → Bear → Scorching Flame | Gustav's 15-hero lineup, this session |
+| Timur | Lily → Deer → Azure Moon | Gustav's 15-hero lineup, this session |
+| Yi Sun-Shin | Daisy → Falcon → Tranquil Water | Gustav's 15-hero lineup, this session |
+| Bellevue | Clover → Falcon → Everflame Wings | Gustav's 15-hero lineup, this session |
+| Henry V | Iris → Badger → Skyward Knight | Gustav's 15-hero lineup, this session |
+| Diao Chan | Violet → Steed → (no T2 gathering ring) | Gustav's 15-hero lineup, this session |
+| Lagertha | Daisy → Night Wolf (if available) → Tranquil Water | AllClash hero build guide, this session |
 
-**General rule:** Any ring is better than no ring. Equip something on every hero before worrying about which tier. Upgrade path is: T0 any → T1 best available → T2 when resources allow.
+Note: Cleopatra and Darius the Great are documented in the M5 stack table above (Sunflower/Laurel → Steed* → none) but share the contested single Steed ring with Diao Chan — see M5 table footnote.
 
-**Investment priority:** Ring heroes in march order — M1 first, then M2, then M3/M4/M5.
+### Tier 2 — Single Unverified Legacy Value Only (62 heroes)
 
----
+These heroes carry exactly one ring name in the roster's `Ring Path` field (e.g. "Ring of Steed," "Ring of Shark," "Ring of Clover") with no tier progression, no role-based reasoning documented, and no source citation. This is inherited legacy data from before the ring system was properly tiered. **Do not treat these as verified recommendations.** They are placeholders only.
 
-## Stat ID Reference
+Examples from this category: Hua Mulan (Ring of Steed), Attila the Hun (Ring of Clover), Josephine (Ring of Tulip), Tribhuwana (Ring of Steed), Sun Tzu (Ring of Shark), Charlemagne (Ring of Shark), Ramesses II (Skyward Knight), Mehmed II (Ring of Steed), Zhuge Liang (Ring of Shark), Theodora (Skyward Knight), Suleiman (Everflame Wings), Leonidas I (Ring of Boar), Richard I (Ring of Boar), Ram Khamhaeng (Ring of Steed), Octavian (Ring of Steed), Julius Caesar (Ring of Steed), El Cid (Ring of Night Wolf), Robin Hood (Ring of Falcon), Rani Durgavati (Ring of Steed), Ashoka (Ring of Steed), Frederick Barbarossa (Ring of Boar), Philip IV (Ring of Shark), King Arthur (Skyward Knight), and approximately 40 more — full list in `AIGA_Hero_Roster_v8.md`.
 
-| Stat ID | Meaning |
-|---|---|
-| troop_atk | All troops attack % |
-| troop_def | All troops defence % |
-| troop_hp | All troops health % |
-| troop_dmg | All troops damage dealt % |
-| troop_dmg_red | All troops damage taken reduction % |
-| troop_skill_dmg_red | All troops skill damage taken reduction % |
-| comm_dmg | Commander damage % |
-| comm_might_dmg | Commander Might damage % |
-| normal_atk_dmg | Normal attack damage % |
-| skill_dmg | All skill damage % |
-| healing | Healing effect % |
-| rage | Rage recovery |
+**Two flagged conflicts within this legacy set:**
+- El Cid's legacy value is "Ring of Night Wolf" — this directly conflicts with the Lu Bu meta override (Night Wolf is Lu Bu-specific). El Cid's legacy entry needs review and is almost certainly wrong as written.
+- King Arthur's legacy value is Skyward Knight on a DPS Lead role — Skyward Knight is a support-oriented ring (reduces own hero damage to boost commander damage). Flagged by Rings thread as "worth a second look" but not yet corrected.
 
----
+### Tier 3 — Pending / No Data (remaining heroes)
 
-*Source: aoem-calculator Rings Data.ts (MIT Licence). Stat values calculated from base + (scaling × (level-1)) formula. Verify skill effects in-game as detailed skill descriptions require in-game inspection.*
-# AIGA — Rings Skills Addendum
-## Age of Empires Mobile
-### Source: Age of Empires Mobile Fandom Wiki — Signet Rings page (CC-BY-SA)
-### Version: 1.0 | March 2026
-### Purpose: Supplements AIGA_Rings_Reference.md with exact ring skill effect descriptions
+A small number of heroes (e.g. King Derrick, Queen Dido, Queen Seondeok) show `PENDING (Rings/Mounts thread)` rather than even a legacy guess — these are honestly blank rather than carrying bad inherited data, which is the safer state.
 
 ---
 
-## Important Notes
+## Known Gaps
 
-- Stat values in this document are at an unspecified mid-level, NOT max level
-- For max-level stat values, always use AIGA_Rings_Reference.md (sourced from calculator data)
-- This document adds the ring skill effect descriptions which were absent from the calculator data
-- Ring of Steed is absent from the Fandom wiki — may be wiki omission. *[verify in-game]*
-- Ring of Mamba and Ring of Seahorse have identical skill descriptions in the source — likely a wiki error. *[verify in-game]*
-
----
-
-## Tier 0 — Plant Rings: Skill Effects
-
-| Ring | Skill Name | Skill Effect | Skill Type |
-|---|---|---|---|
-| Ring of Iris | Critical Blade | Increases the hero's critical strike rate by 1.26% | Passive |
-| Ring of Hyacinth | Battle Review | Increases the hero's XP obtained by 5.75% | Passive |
-| Ring of Lily | Rest and Recover | Recovers your troop's units (recovery rate: 34.50%, strategy bonus) | Active |
-| Ring of Daisy | Double Strike | After launching a normal attack, deals might damage to the enemy troop (damage rate: 35.65%, might bonus) | Secondary Strike |
-| Ring of Tulip | Mighty Strike | Deals might damage to the enemy troop (damage rate: 28.75%, might bonus) | Active |
-| Ring of Violet | Hands of Industry | Increases your troop's gathering speed by 4.60% | Passive |
-| Ring of Rose | Surprise Attack | Deals strategy damage to the enemy troop (damage rate: 28.75%, strategy bonus) | Active |
-| Ring of Laurel | Siege Tactics | Increases the hero's siege by 20.47 | Passive |
-| Ring of Sunflower | Bumper Harvest Omen | Grants 2.76% extra resources when your troops gather resources successfully | Passive |
-| Ring of Clover | Armor Maintenance | Has a 50% chance to reduce your troop's damage taken by 5.75% for 3s every 6s | Turn-based |
-
-**Advisory notes on Tier 0 skills:**
-- Ring of Hyacinth (Battle Review) — XP gain boost is only useful for early levelling. No combat value. Never equip on a maxed hero.
-- Ring of Laurel (Siege Tactics) — Siege stat increase. Low value for combat heroes per AIGA principle (avoid siege stats).
-- Ring of Violet (Hands of Industry) — Gathering speed boost. Only equip on gathering heroes.
-- Ring of Sunflower (Bumper Harvest Omen) — Gathering bonus. Only equip on M5 gathering march heroes.
-- Ring of Tulip and Ring of Clover remain best Tier 0 for combat — confirmed by both stat values and skill effects.
+| Item | Issue | Priority |
+|---|---|---|
+| **62 heroes with legacy single-ring values only** | No tiered T0→T1→T2 path, no role-based reasoning, no source citation. These are NOT verified ring builder recommendations — see Full Roster Ring Coverage Status above. | **Critical — blocks full ring builder rollout in app.py** |
+| El Cid's "Ring of Night Wolf" legacy value | Conflicts directly with Lu Bu meta override. Needs review, likely incorrect as written. | High |
+| King Arthur's Skyward Knight on DPS Lead role | Flagged as questionable fit (Skyward Knight is support-oriented). Not yet corrected. | Medium |
+| Jeweler's Marks exact quantities per upgrade level | Confirmed as upgrade material, quantities unknown | Medium |
+| Lord of Eastern Heavens | Ignore tier confirmed by community — monitor if meta shifts | Low |
+| Radiant Guardian | F2P ignore confirmed except Lu Bu override — only relevant for Mulan/Belisarius/Lu Bu formations | Low |
+| T2 ring stat scaling lv1-50 | Max lv50 values documented, intermediate levels incomplete | Medium |
+| Divine Warrior, Celestial Spark, Radiant Thunder | Appear in community sources, not cross-confirmed against calculator or wiki — do not recommend until verified | Medium |
 
 ---
 
-## Tier 1 — Animal Rings: Skill Effects
+## Dev Handoff Notes (app.py / Ring Builder)
 
-| Ring | Skill Name | Skill Effect | Skill Type |
-|---|---|---|---|
-| Ring of Mamba | Unyielding Faith | When your troop takes strategy damage more than 1% of their max units in a single attack, reduces their strategy damage taken by 4.20% for 6s | Passive |
-| Ring of Boar | Burning Will | Increases the damage of your troop's passive skills by 8.82% when your troop's units fall below 60% | Passive |
-| Ring of Deer | Coercion | Reduces a random enemy hero's damage by 4.62% and increases one of your heroes' damage by 4.62% | Passive |
-| Ring of Rhino | Breach | Can be activated during sieges. Deals 110.25 damage to wall durability (siege bonus) | Active |
-| Ring of Shark | Punisher | Every time your troop's normal attack hits the target, reduces the target's recovery effect by 0.21%, up to 50 stacks | Passive |
-| Ring of Badger | Armor of Steel | For the first 18s after entering battle, reduces your troop's normal attack and secondary strike skill damage taken by 6.62% | Passive |
-| Ring of Bear | All Out | Reduces all your heroes' armor by 20.00 and increases the commander's might by 22.05 | Passive |
-| Ring of Seahorse | Unyielding Faith | When your troop takes strategy damage more than 1% of their max units in a single attack, reduces their strategy damage taken by 4.20% for 6s | Passive |
-| Ring of Lion | Heroic Lineage | Increases the hero's might, strategy, and armor by 13.65 | Passive |
-| Ring of Elephant | Siege Master | Increases the hero's siege by 21.42 | Passive |
-| Ring of Falcon | Blessing of Oasis | Grants one of the following effects every 9s: 1) Recovers your troop's units (recovery rate: 44.10%). 2) Reduces your troop's damage taken by 6.72% for 3s | Turn-based |
-| Ring of Night Wolf | Ablaze Spirit | After every 9 normal attacks of your troop, increases the damage of all your heroes' normal attacks and secondary strike skills by 5.25% (might bonus) and reduces their armor by 7.35 for 3s | Passive |
-| Ring of Crow | Twist of Fate | Steals 11.55 might, strategy, and armor from the enemy commander (strategy bonus) for 3s | Active |
+**What this file delivers as dev-ready:**
+- Complete, verified mechanics for all 35 canonical rings (stats, skill effects, costs, FTP tiers) — ready to hard-code as a ring database
+- Ring builder logic (status tags, cascade rules, allocation priority) — ready to implement as the recommendation engine
+- 14 heroes with fully verified tiered paths — ready to ship as ring builder output for those heroes specifically
+- Confirmed meta overrides (Lu Bu/Night Wolf, Lu Bu/Radiant Guardian, Lagertha/Tranquil Water) — ready to hard-code as exceptions to the general role-matching logic
 
-**Advisory notes on Tier 1 skills:**
-- Ring of Shark (Punisher) — stacks up to 50 times reducing enemy recovery by 0.21% each. At 50 stacks = 10.5% recovery reduction on the enemy. Strong in prolonged fights against recovery-heavy builds. Pairs well against Justinian, Bushra, or any recovery-focused opponent.
-- Ring of Bear (All Out) — reduces your own heroes' armor by 20 in exchange for +22.05 might on commander. High-risk, high-reward. Only viable on heavily geared commanders with strong armor gems.
-- Ring of Rhino + Ring of Elephant — both give siege stat boosts. Low value for combat heroes. Siege-only use cases.
-- Ring of Badger (Armor of Steel) — opening 18s damage reduction on normal attacks and secondary strikes. Situationally strong against secondary-strike heavy marches.
-- Ring of Crow (Twist of Fate) — steals stats from enemy commander. Synergises well with Hannibal who also debuffs enemy commander stats.
-- Ring of Falcon (Blessing of Oasis) — dual-effect every 9s. Either recovers units OR reduces damage taken. Reliable passive value for support heroes.
-- Ring of Night Wolf (Ablaze Spirit) — boosts normal attack and secondary strike damage after every 9 attacks. Good for secondary-strike heavy marches (Hannibal, Hua Mulan, Lu Bu).
-- Ring of Mamba and Ring of Seahorse share identical skill descriptions in wiki — confirmed data issue. *[verify which is correct in-game]*
+**What this file does NOT deliver:**
+- A complete 76-hero ring recommendation set. 62 heroes only have a single legacy ring value with no tier path or sourcing — treating these as ring builder output would surface unverified guesses as confident recommendations to end users, which violates the project's core "never fabricate named game data" rule.
 
----
+**Recommended app.py behaviour for the 62 unverified heroes:** if a player queries one of these heroes, return the legacy single value labelled clearly as `[unverified legacy data — community tier list cross-check recommended]` rather than presenting it as a confirmed T0/T1/T2 stack. Do not silently upgrade these to the same display format as the 14 verified heroes.
 
-## Tier 2 — Legendary Creature Rings: Skill Effects
-
-### Standard Tier 2 (craft cost 1,600)
-
-| Ring | Skill Name | Skill Effect | Skill Type |
-|---|---|---|---|
-| Tranquil Water | Light's Protection | For the first 18s after entering battle, reduces your troop's damage taken by 7.60% | Passive |
-| Effulgent Sun | Firm Onslaught | Enters charging state. After 3s, deals massive might damage to the enemy troop (damage rate: 76.00%, might bonus) | Active (Charge) |
-| Azure Moon | Foreboding of Destruction | Enters charging state. After 3s, deals massive strategy damage to the enemy troop (damage rate: 91.20%, strategy bonus) | Active (Charge) |
-| Scorching Flame | Heroic Moment | When your commander uses a commander skill, increases all your heroes' might by 4.18% for 9s | Passive |
-| Everflame Wings | Silencing Flame | Inflicts the burn effect on the enemy troop every 9s, dealing strategy damage every second (damage rate: 2.37%, strategy bonus). Increases the enemy troop's strategy damage taken by 0.95% (strategy bonus) for 9s. Has a 5.70% chance to [truncated in source] | Turn-based |
-| Lofty Mountain | Accumulating Strength | For the first 18s after entering battle, reduces your troop's might damage taken by 2.85% (armor bonus). After 18s, increases your troop's damage by 2.85% (strategy bonus) | Passive |
-
-### Premium Tier 2 (craft cost 4,000)
-
-| Ring | Skill Name | Skill Effect | Skill Type |
-|---|---|---|---|
-| Radiant Guardian | Flurry of Blows | Increases the hero's secondary strike skill activation chance by 0.50% every 6s and has a 40% chance to gain double attack for 3s | Turn-based |
-| Skyward Knight | Cost of Victory | The hero deals 15.00% less damage (cannot be purified). Increases your commander's damage by 3.23% (strategy bonus) and their signature active skill's activation chance by 1.90% | Passive |
-| Sacred Sage | Silent Oath | All your heroes cannot use active skills (cannot be purified). Increases turn-based skills' damage by 10.45% and healing effect by 10.45% | Passive |
-| Lord of the Eastern Heavens | Decree of Victory | Reduces the damage of all your heroes' active skills by 25% (cannot be purified) but increases the damage of their normal attacks by 19.00% | Passive |
-| Messenger of Destruction | Perception | Reduces the damage of all your heroes' normal attacks by 20% (cannot be purified) but increases the damage of their passive skills by 14.25% | Passive |
-
-**Advisory notes on Tier 2 skills — critical:**
-
-- **Skyward Knight (Cost of Victory)** — hero deals 15% less damage but grants commander damage boost + signature activation boost. The penalty is significant. Best on a support hero where personal damage output matters less than triggering the commander's signature more often. NOT ideal on a damage-focused lead.
-
-- **Sacred Sage (Silent Oath)** — blocks all heroes' active skills entirely (cannot be purified). Tradeoff: +10.45% turn-based damage and healing. Only viable in a pure turn-based build (e.g. Octavian with Coordination). Would cripple any active-skill dependent march.
-
-- **Lord of the Eastern Heavens (Decree of Victory)** — reduces active skill damage by 25% but boosts normal attack damage by 19%. Best on normal-attack heavy heroes (Boudica, Leonidas, counterattack builds). Harmful on active/charging skill focused heroes (Sun Tzu, Suleiman).
-
-- **Messenger of Destruction (Perception)** — reduces normal attack damage by 20% but boosts passive skill damage by 14.25%. Best on passive-skill dependent heroes. Harmful on normal-attack heavy builds.
-
-- **Effulgent Sun and Azure Moon** — both have charge mechanics (3s delay before damage). Might vs strategy versions. Best on heroes with charging synergy (Flash of Inspiration, Maneuver) that can skip or reduce the charge time.
-
-- **Everflame Wings (Silencing Flame)** — burn DoT + strategy damage taken debuff every 9s. Synergises with Suleiman (Magnificent Conquest gets bonus effects against burned targets) and Queen Seondeok.
-
-- **Radiant Guardian (Flurry of Blows)** — secondary strike activation boost + 40% chance double attack every turn-based trigger. Best on secondary-strike focused support heroes. Confirms the ring is a support/recovery hero ring despite the skill name suggesting offense.
-
-- **Tranquil Water (Light's Protection)** — flat 7.60% damage reduction for opening 18s. Straightforward defensive value. Good on any frontline hero.
-
-- **Scorching Flame (Heroic Moment)** — every commander skill use increases all heroes' might by 4.18% for 9s. High value in commander-skill-spam marches. Stacks if the commander skill fires multiple times.
-
----
-
-## Updated Best Ring Recommendations
-
-Incorporating both stat values (from AIGA_Rings_Reference.md) and skill effects (this document):
-
-### For M1 Attack Lead (e.g. Miyamoto Musashi)
-- **Current:** Ring of Tulip lv10 — upgrade priority
-- **Target Tier 1:** Ring of Crow (stat + Twist of Fate steals enemy commander stats) or Ring of Night Wolf (boosts secondary strike damage after 9 attacks)
-- **Target Tier 2:** Lord of Eastern Heavens if normal-attack focused | Skyward Knight if balanced
-
-### For M1 Secondary Support (e.g. Josephine)
-- **Current:** Ring of Violet lv1 — low priority but upgrade when resources allow
-- **Target Tier 1:** Ring of Boar (survival) or Ring of Falcon (dual recovery/reduction)
-- **Target Tier 2:** Radiant Guardian (secondary strike activation + double attack chance)
-
-### For Recovery Support (e.g. Hammurabi, Justinian)
-- **Target Tier 1:** Ring of Falcon (Blessing of Oasis — recovery or damage reduction every 9s)
-- **Target Tier 2:** Radiant Guardian (best healing ring) or Tranquil Water (opening damage reduction)
-
-### For Counterattack Heroes (e.g. Boudica, Leonidas)
-- **Target Tier 2:** Lord of Eastern Heavens — reduces active skill damage (not their primary damage source anyway) while boosting normal attack damage (their primary counter damage)
-
-### For Turn-Based Specialists (e.g. Octavian)
-- **Target Tier 2:** Sacred Sage — blocks active skills (Octavian's build already minimises active skills) while boosting turn-based damage significantly
-
-### For Gathering Heroes (M5 — Diao Chan, Cleopatra, Darius)
-- Ring of Violet (gathering speed) or Ring of Sunflower (extra resources on gather)
-- Never equip a combat ring on a dedicated gathering hero
-
----
-
-*Source: Age of Empires Mobile Fandom Wiki — Signet Rings page (CC-BY-SA). Skill values shown at unspecified mid-level. Use AIGA_Rings_Reference.md for max-level stat values. March 2026.*
+**Next step for full rollout:** Rings thread to work through the 62-hero backlog using the same method applied this session — confirm hero type/role/skills first (cross-check Hero Roster v8), then apply the role-to-ring-tier logic documented in this file, citing AllClash/aoemobileguides.com/in-game verification per hero. El Cid and King Arthur should be prioritised given the flagged conflicts.
 
 ---
 
@@ -341,3 +367,9 @@ Six ring upgrade materials confirmed:
 6. **Hammers** ← confirmed upgrade material
 
 *[Exact quantities of Jeweler's Marks and Hammers required per upgrade level — verify in-game]*
+
+---
+
+*AIGA Rings Reference v2.2 | Network Grey | June 2026*
+*Sources: Theria Games calculator, Fandom Wiki, in-game verification (S371), FTP tier list (community YouTube), AllClash, aoemobileguides.com*
+*Not affiliated with TiMi Studio Group, Level Infinite, Proxima Beta Pte. Limited, Microsoft, or Xbox Game Studios.*
